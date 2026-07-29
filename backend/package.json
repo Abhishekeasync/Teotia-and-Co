@@ -13,6 +13,8 @@
     "db:setup": "npm run migrate && npm run seed"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1097.0",
+    "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -20,9 +22,11 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.1",
     "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.2",
     "morgan": "^1.11.0",
+    "multer": "^2.2.0",
     "mysql2": "^3.23.2",
-    "bcrypt": "^6.0.0",
+    "nodemailer": "^7.0.6",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -31,16 +35,18 @@
     "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.2.0",
     "@types/node": "^26.1.2",
+    "@types/nodemailer": "^6.4.17",
     "@typescript-eslint/eslint-plugin": "^8.65.0",
     "@typescript-eslint/parser": "^8.65.0",
-    "typescript-eslint": "^8.65.0",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.6",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0"
   }
 }

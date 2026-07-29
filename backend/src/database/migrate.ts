@@ -48,6 +48,22 @@ function listMigrationFiles(): string[] {
     .sort();
 }
 
+function stripLineComments(sql: string): string {
+  // Migration files use `--` headers; semicolons inside those lines must not split statements.
+  return sql
+    .split('\n')
+    .map((line) => (line.trimStart().startsWith('--') ? '' : line))
+    .join('\n');
+}
+
+/** Split migration SQL on `;` after removing `--` line comments (files use comment headers). */
+function parseMigrationStatements(sql: string): string[] {
+  return stripLineComments(sql)
+    .split(';')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
 /**
  * Runs one migration file atomically: all statements succeed or none are kept.
  * Records filename in schema_migrations so it is never applied again.
@@ -57,11 +73,7 @@ async function applyMigration(filename: string, sql: string): Promise<void> {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    // Simple split: our migration files do not use semicolons inside strings.
-    const statements = sql
-      .split(';')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && !s.startsWith('--'));
+    const statements = parseMigrationStatements(sql);
 
     for (const statement of statements) {
       await connection.query(statement);

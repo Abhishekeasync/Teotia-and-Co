@@ -3,8 +3,9 @@
   "compilerOptions": {
     "rootDir": "..",
     "noEmit": true,
-    "module": "commonjs",
-    "moduleResolution": "node"
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "ignoreDeprecations": "6.0"
   },
   "include": ["scripts/**/*.ts", "../lib/blog-posts.ts"]
 }

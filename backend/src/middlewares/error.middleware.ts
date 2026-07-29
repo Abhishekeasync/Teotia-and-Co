@@ -2,7 +2,7 @@ import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 import { ApiError } from '../utils/ApiError';
 import { ApiResponse } from '../utils/ApiResponse';
-import { HTTP_STATUS } from '../constants';
+import { HTTP_STATUS, MAX_BLOG_IMAGES } from '../constants';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
 
@@ -50,7 +50,16 @@ function mapMulterError(error: Error & { code?: string }): ApiError | null {
     return new ApiError(HTTP_STATUS.BAD_REQUEST, 'File too large');
   }
   if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-    return new ApiError(HTTP_STATUS.BAD_REQUEST, 'Unexpected file field');
+    return new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      'Unexpected file field. For /upload-image use images (or image), up to 5 files. For create/update use images, featuredImage, image, or ogImage.',
+    );
+  }
+  if (error.code === 'LIMIT_FILE_COUNT') {
+    return new ApiError(
+      HTTP_STATUS.BAD_REQUEST,
+      `Too many files. Maximum is ${MAX_BLOG_IMAGES} images.`,
+    );
   }
   return null;
 }

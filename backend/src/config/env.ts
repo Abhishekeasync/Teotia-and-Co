@@ -35,6 +35,10 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
   SEED_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
   SEED_ADMIN_PASSWORD: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** One-time login code lifetime in minutes (default 10). */
+  OTP_TTL_MINUTES: z.coerce.number().int().positive().default(10),
+  /** Minimum seconds between OTP emails for the same admin (default 60). */
+  OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
 });
 
 export type Env = z.infer<typeof envSchema>;

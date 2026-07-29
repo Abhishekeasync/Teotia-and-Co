@@ -1,13 +1,9 @@
 -- =============================================================================
--- TEOTIA & CO. Blog CMS — initial schema (MySQL 8.0)
--- Run via: npm run migrate  (applies 001, then 002, once each)
+-- 001_create_tables.sql — initial schema (MySQL 8.0)
+-- Immutable: do not edit after merge; add 00N_description.sql for changes.
+-- Idempotent: CREATE TABLE IF NOT EXISTS throughout.
 -- =============================================================================
 
--- -----------------------------------------------------------------------------
--- schema_migrations
--- Tracks which .sql files already ran so "npm run migrate" is safe to re-run.
--- One row per file (e.g. 001_init.sql, 002_indexes.sql).
--- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS schema_migrations (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   filename VARCHAR(255) NOT NULL,
@@ -15,14 +11,6 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   UNIQUE KEY uk_schema_migrations_filename (filename)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------------------------
--- ADMIN & AUTH (Phase 3)
--- Only CMS admins log in — not public visitors.
--- -----------------------------------------------------------------------------
-
--- CMS users who can create/edit/publish blogs.
--- last_verified_at: last successful OTP check (OTP required again after 7 days).
--- deleted_at: soft delete — row kept, admin cannot log in.
 CREATE TABLE IF NOT EXISTS admins (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
@@ -36,8 +24,6 @@ CREATE TABLE IF NOT EXISTS admins (
   KEY idx_admins_deleted_at (deleted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One-time codes emailed at login (hashed, not stored plain text).
--- consumed_at set when OTP is used successfully.
 CREATE TABLE IF NOT EXISTS otp_verifications (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   admin_id BIGINT UNSIGNED NOT NULL,
@@ -49,8 +35,6 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
   CONSTRAINT fk_otp_admin FOREIGN KEY (admin_id) REFERENCES admins (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Audit trail: every login attempt (success or failure), IP + browser.
--- Useful even with one admin — detects wrong passwords / suspicious access.
 CREATE TABLE IF NOT EXISTS login_history (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   admin_id BIGINT UNSIGNED NOT NULL,
@@ -62,11 +46,6 @@ CREATE TABLE IF NOT EXISTS login_history (
   CONSTRAINT fk_login_history_admin FOREIGN KEY (admin_id) REFERENCES admins (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------------------------
--- BLOG CONTENT
--- -----------------------------------------------------------------------------
-
--- Single broad bucket per post (e.g. Taxation, GST) — shown on blog cards.
 CREATE TABLE IF NOT EXISTS categories (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -76,7 +55,6 @@ CREATE TABLE IF NOT EXISTS categories (
   UNIQUE KEY uk_categories_slug (slug)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Many keywords per post (filter/search). Normalized lowercase names.
 CREATE TABLE IF NOT EXISTS tags (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -84,9 +62,6 @@ CREATE TABLE IF NOT EXISTS tags (
   UNIQUE KEY uk_tags_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Main article table. heading + slug must be unique site-wide.
--- view_count: used for "popular" sort — shown to admin only, not public API.
--- author_name: display byline (defaults from admin, overridable per post).
 CREATE TABLE IF NOT EXISTS blogs (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   heading VARCHAR(500) NOT NULL,
@@ -114,7 +89,6 @@ CREATE TABLE IF NOT EXISTS blogs (
   CONSTRAINT fk_blogs_admin FOREIGN KEY (created_by_admin_id) REFERENCES admins (id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Links blogs ↔ tags (many-to-many).
 CREATE TABLE IF NOT EXISTS blog_tags (
   blog_id BIGINT UNSIGNED NOT NULL,
   tag_id BIGINT UNSIGNED NOT NULL,
@@ -123,7 +97,6 @@ CREATE TABLE IF NOT EXISTS blog_tags (
   CONSTRAINT fk_blog_tags_tag FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Visitor comments. Default pending — admin must approve before public sees them.
 CREATE TABLE IF NOT EXISTS comments (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   blog_id BIGINT UNSIGNED NOT NULL,
@@ -138,11 +111,6 @@ CREATE TABLE IF NOT EXISTS comments (
   CONSTRAINT fk_comments_blog FOREIGN KEY (blog_id) REFERENCES blogs (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -----------------------------------------------------------------------------
--- PUBLIC ENGAGEMENT
--- -----------------------------------------------------------------------------
-
--- Newsletter emails. unsubscribed_at set when user clicks unsubscribe link (row kept).
 CREATE TABLE IF NOT EXISTS subscribers (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
@@ -155,8 +123,6 @@ CREATE TABLE IF NOT EXISTS subscribers (
   KEY idx_subscribers_unsubscribed (unsubscribed_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Contact form submissions.
--- service_type: form select value (e.g. "tax"). subject: human-readable label.
 CREATE TABLE IF NOT EXISTS enquiries (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
