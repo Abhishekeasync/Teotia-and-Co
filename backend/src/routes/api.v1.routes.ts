@@ -8,6 +8,7 @@ import subscriberRouter from './subscriber.routes';
 import adminSubscriberRouter from './adminSubscriber.routes';
 import enquiryRouter from './enquiry.routes';
 import adminEnquiryRouter from './adminEnquiry.routes';
+import adminDashboardRouter from './adminDashboard.routes';
 
 const apiV1Router = Router();
 
@@ -21,6 +22,7 @@ apiV1Router.use('/subscribers', subscriberRouter);
 apiV1Router.use('/enquiries', enquiryRouter);
 
 // Admin APIs (require authentication)
+apiV1Router.use('/admin/dashboard', adminDashboardRouter);
 apiV1Router.use('/admin/blogs', adminBlogRouter);
 apiV1Router.use('/admin/comments', adminCommentRouter);
 apiV1Router.use('/admin/subscribers', adminSubscriberRouter);
