@@ -231,6 +231,19 @@ export class BlogRepository {
     }
   }
 
+  async findBySlug(slug: string): Promise<BlogRecord | null> {
+    const connection = await acquireConnection();
+    try {
+      const [rows] = await connection.query<BlogRow[]>(
+        `SELECT ${BLOG_SELECT} FROM blogs WHERE slug = ? AND deleted_at IS NULL LIMIT 1`,
+        [slug],
+      );
+      return rows[0] ? mapBlog(rows[0]) : null;
+    } finally {
+      connection.release();
+    }
+  }
+
   async findPublishedBySlug(slug: string): Promise<BlogRecord | null> {
     const connection = await acquireConnection();
     try {
