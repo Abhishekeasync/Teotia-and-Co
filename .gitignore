@@ -57,3 +57,11 @@ NOTES.md
 PROJECT_INFO.md
 S3_UPDATE_PROGRESS.md
 UPDATES.md
+
+# local tooling / planning (not for repo)
+.claude/
+.cursor/
+CLAUDE.md
+plan.md
+context.md
+backend/README.md

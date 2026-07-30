@@ -14,6 +14,9 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   DB_USER: z.string().min(1),
   DB_PASSWORD: z.string().optional().default(''),
+  DB_POOL_CONNECTION_LIMIT: z.coerce.number().int().positive().optional(),
+  DB_POOL_QUEUE_LIMIT: z.coerce.number().int().nonnegative().optional(),
+  DB_ACQUIRE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRE: z.string().min(1),
   COOKIE_SECRET: z.string().min(16),
@@ -32,6 +35,10 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
   SEED_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
   SEED_ADMIN_PASSWORD: z.preprocess(emptyToUndefined, z.string().optional()),
+  /** One-time login code lifetime in minutes (default 10). */
+  OTP_TTL_MINUTES: z.coerce.number().int().positive().default(10),
+  /** Minimum seconds between OTP emails for the same admin (default 60). */
+  OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
 });
 
 export type Env = z.infer<typeof envSchema>;

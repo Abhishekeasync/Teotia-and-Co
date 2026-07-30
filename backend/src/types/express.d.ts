@@ -1,3 +1,11 @@
-export {};
+import { AdminPublicProfile } from '../interfaces/admin.interface';
 
-// Extend Express Request in later phases (e.g. req.admin)
+declare global {
+  namespace Express {
+    interface Request {
+      admin?: Pick<AdminPublicProfile, 'id' | 'email' | 'name'>;
+    }
+  }
+}
+
+export {};
