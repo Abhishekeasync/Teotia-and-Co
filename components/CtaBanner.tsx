@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Reveal, RevealText } from '@/components/Reveal';
+import { buildConsultationUrl } from '@/lib/consultation';
 
 type CtaBannerProps = {
   title?: string;
@@ -14,7 +15,7 @@ export default function CtaBanner({
   title = 'Start Your Free Consultation Today',
   description = 'One conversation with our experts could save your business thousands. Get personalized financial guidance now.',
   buttonText = 'Book Consultation',
-  buttonHref = '/contact',
+  buttonHref = buildConsultationUrl({ source: 'cta-banner' }),
 }: CtaBannerProps) {
   return (
     <section className="cta-banner cta-banner--split">

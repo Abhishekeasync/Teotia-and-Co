@@ -6,8 +6,13 @@ export const subscribeBodySchema = z.object({
   name: z.string().trim().min(1).max(255).optional(),
 });
 
-/** POST /subscribers/unsubscribe - Unsubscribe via token. */
+/** POST /subscribers/unsubscribe - Unsubscribe via token (body). */
 export const unsubscribeBodySchema = z.object({
+  token: z.string().uuid(),
+});
+
+/** GET /subscribers/unsubscribe - Unsubscribe via token (query). */
+export const unsubscribeQuerySchema = z.object({
   token: z.string().uuid(),
 });
 

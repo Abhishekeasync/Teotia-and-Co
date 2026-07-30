@@ -1,10 +1,36 @@
 import Link from 'next/link';
 import { HeroReveal } from '@/components/Reveal';
 import '../page-styles.css';
-import { blogPosts } from '@/lib/blog-posts';
 import { BlogSection } from '@/components/blog/BlogSection';
+import { publicApi } from '@/lib/api/client';
+import { normalizeApiBlogs } from '@/lib/api/normalize';
+import { mapApiBlogsToPost } from '@/lib/api/mappers';
 
-export default function BlogPage() {
+type BlogPageProps = {
+  searchParams: Promise<{ tag?: string }>;
+};
+
+async function getBlogPosts(tag?: string) {
+  try {
+    const response = await publicApi.blogs.list({
+      page: 1,
+      limit: 100,
+      sort: 'latest',
+      tag,
+    });
+    const data = response as { data?: { blogs?: unknown[] } };
+    const blogs = normalizeApiBlogs((data.data?.blogs ?? []) as Parameters<typeof normalizeApiBlogs>[0]);
+    return mapApiBlogsToPost(blogs);
+  } catch (error) {
+    console.error('Failed to fetch blog posts:', error);
+    return [];
+  }
+}
+
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+  const { tag } = await searchParams;
+  const posts = await getBlogPosts(tag);
+
   return (
     <>
       {/* HERO */}
@@ -30,7 +56,8 @@ export default function BlogPage() {
 
       {/* BLOG EDITORIAL GRID */}
       <BlogSection
-        posts={blogPosts}
+        posts={posts}
+        activeTag={tag}
         title="Financial Insights"
         subtitle="Explore expert perspectives on accounting, taxation, compliance, and strategic financial management for growing businesses."
       />

@@ -7,6 +7,7 @@ import { BlogPost } from '@/lib/blog-posts';
 import { fadeUpVariants } from '@/components/Reveal';
 import { CategoryBadge } from './CategoryBadge';
 import { BlogPostMeta } from './BlogPostMeta';
+import { BlogTagList } from './BlogTagList';
 
 export type BlogCardLayout = 'vertical' | 'small';
 
@@ -96,6 +97,12 @@ export function BlogCard({
           </div>
         </div>
       </Link>
+
+      {post.tags && post.tags.length > 0 && (
+        <div className={isSmall ? 'px-4 pb-4' : 'px-5 pb-5 lg:px-6 lg:pb-6'}>
+          <BlogTagList tags={post.tags} />
+        </div>
+      )}
     </motion.article>
   );
 }

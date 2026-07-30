@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import CountUp from '@/components/CountUp';
@@ -9,7 +9,12 @@ import ServiceCheckpoints from '@/components/ServiceCheckpoints';
 import TestimonialCarousel from '@/components/TestimonialCarousel';
 import { BlogGrid } from '@/components/blog/BlogGrid';
 import '@/components/blog/blog-editorial.css';
-import { blogPosts } from '@/lib/blog-posts';
+import { BlogPost } from '@/lib/blog-posts';
+import { publicApi } from '@/lib/api/client';
+import { mapApiBlogsToPost } from '@/lib/api/mappers';
+import { normalizeApiBlogs } from '@/lib/api/normalize';
+import { ApiBlogListResponse } from '@/lib/api/types';
+import { buildConsultationUrl } from '@/lib/consultation';
 import {
   Reveal,
   RevealText,
@@ -103,10 +108,34 @@ const homeServices = [
 
 export default function Home() {
   const [openItems, setOpenItems] = useState<Record<number, boolean>>({ 0: true });
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loadingBlogs, setLoadingBlogs] = useState(true);
 
   const toggleAccordion = (index: number) => {
     setOpenItems((prev) => ({ ...prev, [index]: !prev[index] }));
   };
+
+  // Fetch latest blog posts
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        const response = await publicApi.blogs.list({
+          page: 1,
+          limit: 3,
+          sort: 'latest',
+        });
+        const data = response as { data?: { blogs?: unknown[] } };
+        const blogs = normalizeApiBlogs((data.data?.blogs ?? []) as Parameters<typeof normalizeApiBlogs>[0]);
+        setBlogPosts(mapApiBlogsToPost(blogs));
+      } catch (error) {
+        console.error('Failed to fetch blog posts:', error);
+      } finally {
+        setLoadingBlogs(false);
+      }
+    }
+
+    fetchBlogs();
+  }, []);
 
   return (
     <>
@@ -122,7 +151,7 @@ export default function Home() {
             <p>Supporting ambitious businesses with specialized expertise in domestic and international taxation, corporate finance, transaction advisory, and M&amp;A consulting.</p>
           </HeroReveal>
           <HeroReveal delay={0.2}>
-            <button className="btn-hero">
+            <Link href={buildConsultationUrl({ source: 'hero' })} className="btn-hero">
               Get a Free Consultation
               <span className="btn-hero-icon" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -130,7 +159,7 @@ export default function Home() {
                   <path d="M13 6l6 6-6 6" />
                 </svg>
               </span>
-            </button>
+            </Link>
           </HeroReveal>
         </div>
       </section>
@@ -142,9 +171,9 @@ export default function Home() {
             A Trusted Chartered Accountancy Firm Empowering Businesses With Clarity And Confidence.
           </RevealText>
           <Reveal delay={0.1}>
-            <button className="btn-dark-green">
+            <Link href="/about" className="btn-dark-green">
               Learn More About Us <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16l4-4-4-4"></path><path d="M8 12h8"></path></svg>
-            </button>
+            </Link>
           </Reveal>
         </div>
 
@@ -386,20 +415,6 @@ export default function Home() {
                 <h3>Shubham Teotia</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Shubham Teotia on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -416,20 +431,6 @@ export default function Home() {
                 <h3>Rahul Chaudhary</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Rahul Chaudhary on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -446,20 +447,6 @@ export default function Home() {
                 <h3>Shaurya Nijhawan</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Shaurya Nijhawan on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -476,20 +463,6 @@ export default function Home() {
                 <h3>Kunal Teotia</h3>
                 <div className="team-card-meta">
                   <span className="role">Company Secretary</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Kunal Teotia on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -547,7 +520,7 @@ export default function Home() {
                   <span className="time">08:30 – 19:30</span>
                 </div>
               </div>
-              <Link href="/contact" className="btn-available">
+              <Link href={buildConsultationUrl({ source: 'home-hours' })} className="btn-available">
                 Get Appointment
                 <span className="btn-available-icon" aria-hidden="true">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -572,7 +545,13 @@ export default function Home() {
             </p>
           </Reveal>
           <Reveal delay={0.12} className="mt-10 lg:mt-12 text-left max-w-[76rem] mx-auto px-[clamp(1.25rem,4vw,2rem)]">
-            <BlogGrid posts={blogPosts.slice(0, 3)} />
+            {loadingBlogs ? (
+              <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+                Loading latest posts...
+              </div>
+            ) : (
+              <BlogGrid posts={blogPosts} infiniteScroll={false} />
+            )}
           </Reveal>
           <div className="blog-home-preview-actions">
             <Reveal delay={0.16}>
