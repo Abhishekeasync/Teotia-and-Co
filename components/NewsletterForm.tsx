@@ -46,7 +46,7 @@ export default function NewsletterForm({ source = 'footer', className = 'footer-
   };
 
   return (
-    <form className={className} onSubmit={handleSubmit}>
+    <form className={className} onSubmit={handleSubmit} suppressHydrationWarning>
       <input
         type="email"
         value={email}
@@ -56,8 +56,9 @@ export default function NewsletterForm({ source = 'footer', className = 'footer-
         maxLength={255}
         disabled={loading}
         required
+        suppressHydrationWarning
       />
-      <button type="submit" disabled={loading}>
+      <button type="submit" disabled={loading} suppressHydrationWarning>
         {loading ? 'Subscribing...' : 'Subscribe'}
       </button>
     </form>
