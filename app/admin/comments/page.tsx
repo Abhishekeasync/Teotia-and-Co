@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminAction, AdminActions } from '@/components/admin/AdminActions';
+import { IconCheck, IconTrash, IconX } from '@/components/admin/AdminIcons';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import {
   ApiAdminComment,
@@ -131,31 +137,43 @@ function CommentsContent() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>Comments</h2>
-        <div className="admin-filters">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              const url = new URL(window.location.href);
-              if (e.target.value) url.searchParams.set('status', e.target.value);
-              else url.searchParams.delete('status');
-              window.location.href = url.toString();
-            }}
-          >
-            <option value="">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="Comments"
+        description="Review and moderate reader comments"
+        actions={
+          <div className="admin-filters">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                const url = new URL(window.location.href);
+                if (e.target.value) url.searchParams.set('status', e.target.value);
+                else url.searchParams.delete('status');
+                window.location.href = url.toString();
+              }}
+            >
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        }
+      />
       <div className="admin-content">
         <div className="admin-panel">
           {loading ? (
-            <p className="admin-empty">Loading comments…</p>
+            <div style={{ padding: '1.25rem' }}>
+              <AdminTableSkeleton rows={6} cols={6} />
+            </div>
           ) : comments.length === 0 ? (
-            <p className="admin-empty">No comments found</p>
+            <AdminEmptyState
+              title="No comments found"
+              description={
+                statusFilter
+                  ? `No ${statusFilter} comments at the moment.`
+                  : 'Reader comments will appear here once submitted.'
+              }
+            />
           ) : (
             <div className="admin-table-wrap">
               <table className="admin-table">
@@ -174,16 +192,14 @@ function CommentsContent() {
                     <tr key={comment.id}>
                       <td>
                         <div>{comment.name}</div>
-                        <div style={{ fontSize: '0.78rem', color: '#888' }}>
-                          {comment.email}
-                        </div>
+                        <div className="admin-cell-muted">{comment.email}</div>
                       </td>
                       <td>
                         <Link href={`/blog/${comment.blogSlug}`} target="_blank">
                           {comment.blogHeading}
                         </Link>
                       </td>
-                      <td style={{ maxWidth: 280 }}>{comment.comment}</td>
+                      <td className="admin-cell-clamp">{comment.comment}</td>
                       <td>
                         <span className={`admin-badge ${comment.status}`}>
                           {comment.status}
@@ -191,36 +207,36 @@ function CommentsContent() {
                       </td>
                       <td>{formatDate(comment.createdAt)}</td>
                       <td>
-                        <div className="admin-btn-group">
+                        <AdminActions>
                           {comment.status !== 'approved' && (
-                            <button
-                              type="button"
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                            <AdminAction
+                              label="Approve"
+                              icon={<IconCheck />}
+                              variant="success"
                               disabled={actionId === comment.id}
+                              loading={actionId === comment.id}
                               onClick={() => runApprove(comment.id)}
-                            >
-                              Approve
-                            </button>
+                            />
                           )}
                           {comment.status !== 'rejected' && (
-                            <button
-                              type="button"
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
+                            <AdminAction
+                              label="Reject"
+                              icon={<IconX />}
+                              variant="warning"
                               disabled={actionId === comment.id}
+                              loading={actionId === comment.id}
                               onClick={() => requestCommentReject(comment)}
-                            >
-                              Reject
-                            </button>
+                            />
                           )}
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn-danger admin-btn-sm"
+                          <AdminAction
+                            label="Delete"
+                            icon={<IconTrash />}
+                            variant="danger"
                             disabled={actionId === comment.id}
+                            loading={actionId === comment.id}
                             onClick={() => requestCommentDelete(comment)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                          />
+                        </AdminActions>
                       </td>
                     </tr>
                   ))}
@@ -230,29 +246,12 @@ function CommentsContent() {
           )}
         </div>
 
-        {totalPages > 1 && (
-          <div className="admin-btn-group">
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page <= 1 || loading}
-              onClick={() => loadComments(page - 1, statusFilter)}
-            >
-              Previous
-            </button>
-            <span style={{ alignSelf: 'center', fontSize: '0.875rem' }}>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page >= totalPages || loading}
-              onClick={() => loadComments(page + 1, statusFilter)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={(p) => loadComments(p, statusFilter)}
+        />
       </div>
       {deleteDialog}
       {rejectDialog}

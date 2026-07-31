@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, DragEvent, useEffect, useId, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { adminApi } from '@/lib/api/client';
 
 const MAX_IMAGES = 5;

@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { publicApi, ApiClientError } from '@/lib/api/client';
 import { ApiComment } from '@/lib/api/types';
 import { validateName, validateEmail, validateComment } from '@/lib/validation';
@@ -79,7 +79,14 @@ export function BlogComments({ slug }: BlogCommentsProps) {
 
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
-      showValidationToasts(validationErrors);
+      showValidationToasts(validationErrors, {
+        fieldOrder: ['name', 'email', 'comment'],
+        idMap: {
+          name: 'comment-name',
+          email: 'comment-email',
+          comment: 'comment-text',
+        },
+      });
       return;
     }
 
@@ -152,7 +159,7 @@ export function BlogComments({ slug }: BlogCommentsProps) {
       )}
 
       {/* Comment submission form */}
-      <form onSubmit={handleSubmit} style={{ marginTop: '2rem' }}>
+      <form onSubmit={handleSubmit} style={{ marginTop: '2rem' }} noValidate>
         <h3 style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>Leave a Comment</h3>
 
         <div style={{ display: 'grid', gap: '1rem', marginBottom: '1rem' }}>
@@ -179,9 +186,7 @@ export function BlogComments({ slug }: BlogCommentsProps) {
               }}
             />
             {errors.name && (
-              <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                {errors.name}
-              </span>
+              <span className="form-field-error">{errors.name}</span>
             )}
           </div>
 
@@ -208,9 +213,7 @@ export function BlogComments({ slug }: BlogCommentsProps) {
               }}
             />
             {errors.email && (
-              <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                {errors.email}
-              </span>
+              <span className="form-field-error">{errors.email}</span>
             )}
             <small style={{ color: '#6b7280', fontSize: '0.875rem' }}>
               Your email will not be published
@@ -241,9 +244,7 @@ export function BlogComments({ slug }: BlogCommentsProps) {
               }}
             />
             {errors.comment && (
-              <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                {errors.comment}
-              </span>
+              <span className="form-field-error">{errors.comment}</span>
             )}
           </div>
         </div>

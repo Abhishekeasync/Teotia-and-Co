@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminAction, AdminActions } from '@/components/admin/AdminActions';
+import { IconEye, IconTrash } from '@/components/admin/AdminIcons';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { EnquiryDetailDialog } from '@/components/admin/EnquiryDetailDialog';
 import { adminApi } from '@/lib/api/client';
 import { ApiEnquiry, ApiEnquiryListResponse } from '@/lib/api/types';
@@ -94,15 +100,21 @@ export default function AdminEnquiriesPage() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>Enquiries</h2>
-      </header>
+      <AdminPageHeader
+        title="Enquiries"
+        description="Contact form submissions from the website"
+      />
       <div className="admin-content">
         <div className="admin-panel">
           {loading ? (
-            <p className="admin-empty">Loading enquiries…</p>
+            <div style={{ padding: '1.25rem' }}>
+              <AdminTableSkeleton rows={6} cols={7} />
+            </div>
           ) : enquiries.length === 0 ? (
-            <p className="admin-empty">No enquiries yet</p>
+            <AdminEmptyState
+              title="No enquiries yet"
+              description="When visitors submit the contact form, their messages will appear here."
+            />
           ) : (
             <div className="admin-table-wrap">
               <table className="admin-table">
@@ -133,23 +145,21 @@ export default function AdminEnquiriesPage() {
                       <td>{enquiry.subject}</td>
                       <td>{formatDate(enquiry.createdAt)}</td>
                       <td>
-                        <div className="admin-btn-group">
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn-secondary admin-btn-sm"
+                        <AdminActions>
+                          <AdminAction
+                            label="View details"
+                            icon={<IconEye />}
                             onClick={() => openDetail(enquiry.id)}
-                          >
-                            View
-                          </button>
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn-danger admin-btn-sm"
+                          />
+                          <AdminAction
+                            label="Delete"
+                            icon={<IconTrash />}
+                            variant="danger"
                             disabled={actionId === enquiry.id}
+                            loading={actionId === enquiry.id}
                             onClick={() => requestEnquiryDelete(enquiry)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                          />
+                        </AdminActions>
                       </td>
                     </tr>
                   ))}
@@ -159,29 +169,12 @@ export default function AdminEnquiriesPage() {
           )}
         </div>
 
-        {totalPages > 1 && (
-          <div className="admin-btn-group">
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page <= 1 || loading}
-              onClick={() => loadEnquiries(page - 1)}
-            >
-              Previous
-            </button>
-            <span style={{ alignSelf: 'center', fontSize: '0.875rem' }}>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page >= totalPages || loading}
-              onClick={() => loadEnquiries(page + 1)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={loadEnquiries}
+        />
       </div>
 
       <EnquiryDetailDialog

@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminAction, AdminActions } from '@/components/admin/AdminActions';
+import { IconTrash } from '@/components/admin/AdminIcons';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import { ApiSubscriber, ApiSubscriberListResponse } from '@/lib/api/types';
 import { useDeleteDialog } from '@/lib/hooks/useDeleteDialog';
@@ -67,15 +73,21 @@ export default function AdminSubscribersPage() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>Subscribers</h2>
-      </header>
+      <AdminPageHeader
+        title="Subscribers"
+        description="Newsletter sign-ups from the website"
+      />
       <div className="admin-content">
         <div className="admin-panel">
           {loading ? (
-            <p className="admin-empty">Loading subscribers…</p>
+            <div style={{ padding: '1.25rem' }}>
+              <AdminTableSkeleton rows={6} cols={6} />
+            </div>
           ) : subscribers.length === 0 ? (
-            <p className="admin-empty">No subscribers yet</p>
+            <AdminEmptyState
+              title="No subscribers yet"
+              description="Email sign-ups from the newsletter form will appear here."
+            />
           ) : (
             <div className="admin-table-wrap">
               <table className="admin-table">
@@ -106,14 +118,16 @@ export default function AdminSubscribersPage() {
                       <td>{formatDate(sub.createdAt)}</td>
                       <td>{formatDate(sub.unsubscribedAt)}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn-danger admin-btn-sm"
-                          disabled={actionId === sub.id}
-                          onClick={() => requestSubscriberDelete(sub)}
-                        >
-                          Delete
-                        </button>
+                        <AdminActions>
+                          <AdminAction
+                            label="Remove"
+                            icon={<IconTrash />}
+                            variant="danger"
+                            disabled={actionId === sub.id}
+                            loading={actionId === sub.id}
+                            onClick={() => requestSubscriberDelete(sub)}
+                          />
+                        </AdminActions>
                       </td>
                     </tr>
                   ))}
@@ -123,29 +137,12 @@ export default function AdminSubscribersPage() {
           )}
         </div>
 
-        {totalPages > 1 && (
-          <div className="admin-btn-group">
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page <= 1 || loading}
-              onClick={() => loadSubscribers(page - 1)}
-            >
-              Previous
-            </button>
-            <span style={{ alignSelf: 'center', fontSize: '0.875rem' }}>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page >= totalPages || loading}
-              onClick={() => loadSubscribers(page + 1)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={loadSubscribers}
+        />
       </div>
       {deleteDialog}
     </>

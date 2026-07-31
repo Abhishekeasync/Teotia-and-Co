@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PublicShell } from "@/components/PublicShell";
-import { Toaster } from "sonner";
+import { ToastProvider } from "@/components/ToastProvider";
 
 export const metadata: Metadata = {
   title: "TEOTIA & CO. | Chartered Accountants",
@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <PublicShell>{children}</PublicShell>
-        <Toaster position="top-right" richColors closeButton />
+        <ToastProvider />
       </body>
     </html>
   );

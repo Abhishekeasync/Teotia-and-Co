@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { publicApi, ApiClientError } from '@/lib/api/client';
 import { validateEmail } from '@/lib/validation';
 

@@ -19,7 +19,7 @@ import {
   CONSULTATION_MESSAGE_PLACEHOLDER,
   parseConsultationParams,
 } from '@/lib/consultation';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { SITE_CONTACT } from '@/lib/site';
 import '../page-styles.css';
 
@@ -311,7 +311,8 @@ function ContactPageContent() {
           </Reveal>
 
           <Reveal>
-            <form className="contact-form" onSubmit={handleSubmit}>
+            <form className="contact-form" onSubmit={handleSubmit} noValidate>
+
               <div className="form-group">
                 <label htmlFor="name">Name *</label>
                 <input
@@ -322,10 +323,12 @@ function ContactPageContent() {
                   onChange={handleChange}
                   placeholder="Your full name"
                   maxLength={255}
-                  style={{ borderColor: errors.name ? '#ef4444' : undefined }}
+                  className={errors.name ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.name)}
+                  aria-describedby={errors.name ? 'name-error' : undefined}
                 />
                 {errors.name && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="name-error" className="form-field-error">
                     {errors.name}
                   </span>
                 )}
@@ -341,10 +344,12 @@ function ContactPageContent() {
                   onChange={handleChange}
                   placeholder="Your phone number"
                   maxLength={50}
-                  style={{ borderColor: errors.phone ? '#ef4444' : undefined }}
+                  className={errors.phone ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.phone)}
+                  aria-describedby={errors.phone ? 'phone-error' : undefined}
                 />
                 {errors.phone && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="phone-error" className="form-field-error">
                     {errors.phone}
                   </span>
                 )}
@@ -360,10 +365,12 @@ function ContactPageContent() {
                   onChange={handleChange}
                   placeholder="Your email address"
                   maxLength={255}
-                  style={{ borderColor: errors.email ? '#ef4444' : undefined }}
+                  className={errors.email ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                 />
                 {errors.email && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="email-error" className="form-field-error">
                     {errors.email}
                   </span>
                 )}
@@ -376,7 +383,9 @@ function ContactPageContent() {
                   name="serviceType"
                   value={formData.serviceType}
                   onChange={handleChange}
-                  style={{ borderColor: errors.serviceType ? '#ef4444' : undefined }}
+                  className={errors.serviceType ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.serviceType)}
+                  aria-describedby={errors.serviceType ? 'serviceType-error' : undefined}
                 >
                   <option value="">Select a service</option>
                   {serviceTypes.map((service) => (
@@ -386,7 +395,7 @@ function ContactPageContent() {
                   ))}
                 </select>
                 {errors.serviceType && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="serviceType-error" className="form-field-error">
                     {errors.serviceType}
                   </span>
                 )}
@@ -402,10 +411,12 @@ function ContactPageContent() {
                   onChange={handleChange}
                   placeholder="Brief summary of your enquiry"
                   maxLength={500}
-                  style={{ borderColor: errors.subject ? '#ef4444' : undefined }}
+                  className={errors.subject ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.subject)}
+                  aria-describedby={errors.subject ? 'subject-error' : undefined}
                 />
                 {errors.subject && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="subject-error" className="form-field-error">
                     {errors.subject}
                   </span>
                 )}
@@ -425,10 +436,12 @@ function ContactPageContent() {
                   }
                   maxLength={5000}
                   rows={5}
-                  style={{ borderColor: errors.message ? '#ef4444' : undefined }}
+                  className={errors.message ? 'field-invalid' : undefined}
+                  aria-invalid={Boolean(errors.message)}
+                  aria-describedby={errors.message ? 'message-error' : undefined}
                 />
                 {errors.message && (
-                  <span style={{ color: '#ef4444', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  <span id="message-error" className="form-field-error">
                     {errors.message}
                   </span>
                 )}
