@@ -128,6 +128,54 @@
   flex: 1;
 }
 
+.admin-content-centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.admin-content-centered .admin-form {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.admin-content-centered .admin-error {
+  width: 100%;
+  max-width: 900px;
+}
+
+.admin-content-full {
+  width: 100%;
+  max-width: none;
+}
+
+.admin-content-full .admin-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.admin-content-full .admin-recent-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 1100px) {
+  .admin-content-full .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-content-full .admin-recent-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-content-full .admin-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-loading {
   min-height: 100vh;
   display: flex;
@@ -840,6 +888,84 @@
 
 .admin-blog-preview-content {
   margin-top: 1rem;
+}
+
+.admin-preview-backdrop {
+  z-index: 1200;
+  align-items: flex-start;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.admin-preview-modal {
+  max-width: 920px;
+  width: 100%;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-preview-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #eef1f5;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.admin-preview-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-preview-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: #f3f5f8;
+  color: #555;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.admin-preview-close:hover {
+  background: #e8ecf1;
+}
+
+.admin-preview-modal-body {
+  overflow-y: auto;
+  max-height: calc(92vh - 3.5rem);
+}
+
+.admin-blog-preview-page {
+  padding: 32px 24px 48px;
+}
+
+.admin-blog-preview-page .blog-all-posts {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+@media (max-width: 640px) {
+  .admin-preview-backdrop {
+    padding: 0.75rem;
+  }
+
+  .admin-blog-preview-page {
+    padding: 24px 16px 36px;
+  }
 }
 
 .admin-gallery-upload {

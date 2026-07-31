@@ -8,7 +8,7 @@ export default function NewBlogPage() {
       <header className="admin-header">
         <h2>New blog post</h2>
       </header>
-      <div className="admin-content">
+      <div className="admin-content admin-content-centered">
         <BlogForm />
       </div>
     </>
