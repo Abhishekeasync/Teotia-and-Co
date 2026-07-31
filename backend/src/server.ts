@@ -1,9 +1,16 @@
 import { createApp } from './app';
 import { closeDatabasePool, testDatabaseConnection } from './config/database';
 import { env } from './config/env';
+import { runMigrations } from './database/migrate';
 import { logger } from './utils/logger';
 
 async function bootstrap(): Promise<void> {
+  if (!env.SKIP_MIGRATIONS) {
+    await runMigrations();
+  } else {
+    logger.warn('SKIP_MIGRATIONS enabled — skipping database migrations on startup');
+  }
+
   if (!env.SKIP_DB_CHECK) {
     await testDatabaseConnection();
   } else {
