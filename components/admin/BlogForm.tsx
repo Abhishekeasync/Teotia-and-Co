@@ -140,6 +140,23 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     return formData;
   };
 
+  useEffect(() => {
+    if (!showPreview) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowPreview(false);
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [showPreview]);
+
   const save = async (publishAfter = false) => {
     if (!heading.trim() || !shortDescription.trim() || !body.trim()) {
       toast.error('Heading, description, and body are required');
@@ -213,25 +230,52 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
             <button
               type="button"
               className="admin-btn admin-btn-secondary admin-btn-sm"
-              onClick={() => setShowPreview((value) => !value)}
+              onClick={() => setShowPreview(true)}
             >
-              {showPreview ? 'Hide preview' : 'Show preview'}
+              Show preview
             </button>
           </div>
           <RichTextEditor content={body} onChange={setBody} />
         </div>
 
         {showPreview && (
-          <BlogPreview
-            heading={heading}
-            shortDescription={shortDescription}
-            body={body}
-            tags={parsedTags}
-            authorName={authorName}
-            categoryName={selectedCategoryName}
-            featuredImageUrl={featuredPreviewUrl}
-            galleryImages={galleryImages}
-          />
+          <div
+            className="admin-modal-backdrop admin-preview-backdrop"
+            role="presentation"
+            onClick={() => setShowPreview(false)}
+          >
+            <div
+              className="admin-preview-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="blog-preview-title"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <header className="admin-preview-modal-header">
+                <h3 id="blog-preview-title">Blog preview</h3>
+                <button
+                  type="button"
+                  className="admin-preview-close"
+                  aria-label="Close preview"
+                  onClick={() => setShowPreview(false)}
+                >
+                  ×
+                </button>
+              </header>
+              <div className="admin-preview-modal-body">
+                <BlogPreview
+                  heading={heading}
+                  shortDescription={shortDescription}
+                  body={body}
+                  tags={parsedTags}
+                  authorName={authorName}
+                  categoryName={selectedCategoryName}
+                  featuredImageUrl={featuredPreviewUrl}
+                  galleryImages={galleryImages}
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="admin-field">

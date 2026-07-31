@@ -101,20 +101,33 @@ export function BlogHeroCarousel({
               }`}
               aria-hidden={index !== activeIndex}
             >
-              <Image
-                src={src}
-                alt={
-                  slides.length === 1
-                    ? title
-                    : `${title} — image ${index + 1} of ${slides.length}`
-                }
-                width={980}
-                height={552}
-                sizes="(max-width: 980px) 100vw, 980px"
-                className="blog-hero-carousel-image"
-                priority={index === 0}
-                loading={index === 0 ? 'eager' : 'lazy'}
-              />
+              {src.startsWith('blob:') ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={src}
+                  alt={
+                    slides.length === 1
+                      ? title
+                      : `${title} — image ${index + 1} of ${slides.length}`
+                  }
+                  className="blog-hero-carousel-image"
+                />
+              ) : (
+                <Image
+                  src={src}
+                  alt={
+                    slides.length === 1
+                      ? title
+                      : `${title} — image ${index + 1} of ${slides.length}`
+                  }
+                  width={980}
+                  height={552}
+                  sizes="(max-width: 980px) 100vw, 980px"
+                  className="blog-hero-carousel-image"
+                  priority={index === 0}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              )}
             </figure>
           ))}
         </div>

@@ -41,7 +41,7 @@ export default function EditBlogPage() {
       <header className="admin-header">
         <h2>{blog ? `Edit: ${blog.heading}` : 'Edit blog'}</h2>
       </header>
-      <div className="admin-content">
+      <div className="admin-content admin-content-centered">
         {loading && <p>Loading blog…</p>}
         {error && <div className="admin-error">{error}</div>}
         {!loading && !error && blog && (

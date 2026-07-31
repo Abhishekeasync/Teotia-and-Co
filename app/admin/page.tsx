@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
           New blog post
         </Link>
       </header>
-      <div className="admin-content">
+      <div className="admin-content admin-content-full">
         {loading ? (
           <p>Loading dashboard…</p>
         ) : (
