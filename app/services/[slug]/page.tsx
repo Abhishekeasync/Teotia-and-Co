@@ -8,6 +8,7 @@ import {
   getServiceBySlug,
   services,
 } from '@/lib/services';
+import { buildConsultationUrl, mapServiceSlugToEnquiryType } from '@/lib/consultation';
 import '../../page-styles.css';
 
 type ServicePageProps = {
@@ -63,7 +64,13 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
                 <span className="service-meta-value">{service.price}</span>
               </div>
 
-              <Link href="/contact" className="service-book-btn">
+              <Link
+                href={buildConsultationUrl({
+                  source: `service-${slug}`,
+                  service: mapServiceSlugToEnquiryType(slug),
+                })}
+                className="service-book-btn"
+              >
                 Book Now
               </Link>
 

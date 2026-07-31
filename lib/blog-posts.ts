@@ -9,6 +9,7 @@ export type BlogPost = {
   date: string;
   readTime: string;
   category: string;
+  tags?: string[]; // Optional tags from API
 };
 
 const AUTHOR_AVATAR =

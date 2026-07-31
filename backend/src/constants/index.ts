@@ -26,7 +26,7 @@ export const OTP_VERIFICATION_WINDOW_DAYS = 7;
 export const AUTH_COOKIE_NAME = 'access_token';
 /** Per-IP cap on login, verify-otp, and resend-otp combined. */
 export const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
-export const AUTH_RATE_LIMIT_MAX = 20;
+export const AUTH_RATE_LIMIT_MAX = 50;
 
 export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 /** Max gallery images stored per blog post (featured/og are separate SEO fields). */

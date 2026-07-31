@@ -144,20 +144,6 @@ export default function AboutPage() {
                 <h3>Shubham Teotia</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Shubham Teotia on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -174,20 +160,6 @@ export default function AboutPage() {
                 <h3>Rahul Chaudhary</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Rahul Chaudhary on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -204,20 +176,6 @@ export default function AboutPage() {
                 <h3>Shaurya Nijhawan</h3>
                 <div className="team-card-meta">
                   <span className="role">Chartered Accountant</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Shaurya Nijhawan on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>
@@ -234,20 +192,6 @@ export default function AboutPage() {
                 <h3>Kunal Teotia</h3>
                 <div className="team-card-meta">
                   <span className="role">Company Secretary</span>
-                  <a
-                    href="#"
-                    className="linkedin-btn"
-                    aria-label="Kunal Teotia on LinkedIn"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path
-                        fill="currentColor"
-                        d="M6.94 5a2 2 0 1 1-4-.002 2 2 0 0 1 4 .002zM7 8.48H3V21h4V8.48zm6.32 0H9.34V21h3.94v-6.57c0-3.66 4.77-4 4.77 0V21H22v-7.93c0-6.17-7.06-5.94-8.72-2.91l.04-1.68z"
-                      />
-                    </svg>
-                  </a>
                 </div>
               </div>
             </StaggerItem>

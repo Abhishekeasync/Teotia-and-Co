@@ -14,6 +14,7 @@ import { CategoryRepository } from '../repositories/category.repository';
 import { TagRepository } from '../repositories/tag.repository';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
+import { notifySubscribersOfNewPost } from '../utils/mail';
 import { buildPaginationMeta, PaginationParams } from '../utils/pagination';
 import { deleteBlogImageByUrl, uploadBlogImage } from '../utils/s3';
 import { slugify, uniqueSlugFromHeading } from '../utils/slug';
@@ -263,20 +264,64 @@ export class BlogService {
   }
 
   async publish(id: number): Promise<AdminBlogDetail> {
+    logger.info('[PUBLISH] Publish request received', { blogId: id });
+
     const blog = await this.blogRepository.findById(id);
     if (!blog) {
+      logger.warn('[PUBLISH] Blog not found', { blogId: id });
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
     }
+
+    const wasAlreadyPublished = blog.status === 'published';
     const publishedAt = blog.publishedAt ?? new Date();
+
+    logger.info('[PUBLISH] Current blog state', {
+      blogId: id,
+      slug: blog.slug,
+      currentStatus: blog.status,
+      wasAlreadyPublished,
+      publishedAt,
+    });
+
+    logger.info('[PUBLISH] Updating blog status to published', { blogId: id });
     await this.blogRepository.update(id, {
       status: 'published',
       publishedAt,
     });
-    logger.info('Blog published — subscriber email hook reserved for Phase 5', { blogId: id });
+
     const refreshed = await this.blogRepository.findById(id);
     if (!refreshed) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
     }
+    logger.info('[PUBLISH] Blog status updated successfully', { blogId: id, slug: refreshed.slug });
+
+    // Send email notifications to subscribers (only for newly published posts)
+    if (!wasAlreadyPublished) {
+      logger.info('[PUBLISH] First-time publish detected \u2014 triggering subscriber notification pipeline', {
+        blogId: id,
+        slug: refreshed.slug,
+        heading: refreshed.heading,
+      });
+
+      // Non-blocking: don't await, let it run in background
+      notifySubscribersOfNewPost({
+        heading: refreshed.heading,
+        slug: refreshed.slug,
+        shortDescription: refreshed.shortDescription,
+        authorName: refreshed.authorName,
+        featuredImageUrl: refreshed.featuredImageUrl,
+      }).catch((error) => {
+        logger.error('[PUBLISH] Uncaught error in background notification pipeline', { blogId: id, error });
+      });
+
+      logger.info('[PUBLISH] Background notification pipeline started (non-blocking)', { blogId: id });
+    } else {
+      logger.info('[PUBLISH] Blog was already published \u2014 skipping subscriber notifications (no duplicate emails)', {
+        blogId: id,
+        slug: refreshed.slug,
+      });
+    }
+
     return this.toAdminDetail(refreshed);
   }
 

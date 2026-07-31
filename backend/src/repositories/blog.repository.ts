@@ -231,6 +231,19 @@ export class BlogRepository {
     }
   }
 
+  async findBySlug(slug: string): Promise<BlogRecord | null> {
+    const connection = await acquireConnection();
+    try {
+      const [rows] = await connection.query<BlogRow[]>(
+        `SELECT ${BLOG_SELECT} FROM blogs WHERE slug = ? AND deleted_at IS NULL LIMIT 1`,
+        [slug],
+      );
+      return rows[0] ? mapBlog(rows[0]) : null;
+    } finally {
+      connection.release();
+    }
+  }
+
   async findPublishedBySlug(slug: string): Promise<BlogRecord | null> {
     const connection = await acquireConnection();
     try {
@@ -339,6 +352,39 @@ export class BlogRepository {
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
         'SELECT COUNT(*) AS total FROM blogs WHERE deleted_at IS NULL',
+      );
+      return Number(rows[0]?.total ?? 0);
+    } finally {
+      connection.release();
+    }
+  }
+
+  /** Count all blogs (including deleted, for admin dashboard). */
+  async countAll(): Promise<number> {
+    return this.countAdmin(); // Same as countAdmin - excludes deleted
+  }
+
+  /** Count published blogs only. */
+  async countPublished(): Promise<number> {
+    const connection = await acquireConnection();
+    try {
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT COUNT(*) AS total FROM blogs 
+         WHERE status = 'published' AND deleted_at IS NULL`,
+      );
+      return Number(rows[0]?.total ?? 0);
+    } finally {
+      connection.release();
+    }
+  }
+
+  /** Count draft blogs only. */
+  async countDrafts(): Promise<number> {
+    const connection = await acquireConnection();
+    try {
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT COUNT(*) AS total FROM blogs 
+         WHERE status = 'draft' AND deleted_at IS NULL`,
       );
       return Number(rows[0]?.total ?? 0);
     } finally {

@@ -39,6 +39,10 @@ const envSchema = z.object({
   OTP_TTL_MINUTES: z.coerce.number().int().positive().default(10),
   /** Minimum seconds between OTP emails for the same admin (default 60). */
   OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().nonnegative().default(60),
+  /** Frontend URL for email links (unsubscribe, etc.). */
+  FRONTEND_URL: z.preprocess(emptyToUndefined, z.url().optional().default('http://localhost:3000')),
+  /** Admin email for enquiry notifications (fallback to SEED_ADMIN_EMAIL). */
+  ADMIN_NOTIFICATION_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
 });
 
 export type Env = z.infer<typeof envSchema>;

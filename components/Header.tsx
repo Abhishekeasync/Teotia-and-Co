@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { buildConsultationUrl } from '@/lib/consultation';
 import './header-footer.css';
+
+const consultationHref = buildConsultationUrl({ source: 'header' });
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -37,7 +40,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="pill-logo">
             <Image
-              src="https://teotia-and-co.s3.us-east-1.amazonaws.com/logo.avif"
+              src="/assets/images/Teotia-and-co-Logo.png"
               alt="TEOTIA & CO. Logo"
               className="logo"
               width={120}
@@ -60,14 +63,14 @@ export default function Header() {
 
           {/* CTA */}
           <div className="pill-actions">
-            <button className="btn-consult">
+            <Link href={consultationHref} className="btn-consult">
               Book Consultation
               <span className="btn-consult-icon" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M3 7h8M7 3l4 4-4 4" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </span>
-            </button>
+            </Link>
             <button
               className="hamburger"
               onClick={() => setMobileMenuOpen(true)}
@@ -100,14 +103,19 @@ export default function Header() {
             {link.label}
           </Link>
         ))}
-        <button className="btn-consult" style={{ width: '100%', marginTop: '12px' }}>
+        <Link
+          href={consultationHref}
+          className="btn-consult"
+          style={{ width: '100%', marginTop: '12px' }}
+          onClick={() => setMobileMenuOpen(false)}
+        >
           Book Consultation
           <span className="btn-consult-icon" aria-hidden="true">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 7h8M7 3l4 4-4 4" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-        </button>
+        </Link>
       </div>
     </>
   );
