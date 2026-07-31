@@ -12,6 +12,7 @@ import fs from 'fs';
 import path from 'path';
 import { RowDataPacket } from 'mysql2';
 import { getPool, closeDatabasePool } from '../config/database';
+import { isProduction } from '../config/env';
 import { logger } from '../utils/logger';
 
 // dist/database → backend/migrations when built; same when run via ts-node from src/
@@ -95,7 +96,11 @@ export async function runMigrations(): Promise<void> {
   const files = listMigrationFiles();
 
   if (files.length === 0) {
-    logger.warn('No migration files found', { dir: MIGRATIONS_DIR });
+    const message = `No migration files found in ${MIGRATIONS_DIR}`;
+    if (isProduction) {
+      throw new Error(`${message}. Deploy backend/migrations/ alongside dist/.`);
+    }
+    logger.warn(message);
     return;
   }
 

@@ -33,6 +33,10 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform((v) => v === 'true'),
+  SKIP_MIGRATIONS: z
+    .enum(['true', 'false'])
+    .optional()
+    .transform((v) => v === 'true'),
   SEED_ADMIN_EMAIL: z.preprocess(emptyToUndefined, z.string().email().optional()),
   SEED_ADMIN_PASSWORD: z.preprocess(emptyToUndefined, z.string().optional()),
   /** One-time login code lifetime in minutes (default 10). */
