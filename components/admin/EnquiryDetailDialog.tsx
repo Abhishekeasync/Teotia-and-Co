@@ -107,7 +107,7 @@ export function EnquiryDetailDialog({
             disabled={loading}
             onClick={() => onDelete(enquiry)}
           >
-            Delete
+            {loading ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>

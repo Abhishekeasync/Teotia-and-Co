@@ -1,7 +1,7 @@
 'use client';
 
 import { ChangeEvent, DragEvent, useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { adminApi } from '@/lib/api/client';
 import { normalizeApiBlog, type RawApiBlog } from '@/lib/api/normalize';
 

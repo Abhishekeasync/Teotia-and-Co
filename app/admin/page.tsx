@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminDashboardSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import {
   ApiDashboardRecent,
@@ -43,15 +46,14 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>Dashboard</h2>
-        <Link href="/admin/blogs/new" className="admin-btn admin-btn-primary">
-          New blog post
-        </Link>
-      </header>
+      <AdminPageHeader
+        title="Dashboard"
+        description="Overview of content, engagement, and inbound enquiries"
+        primaryAction={{ href: '/admin/blogs/new', label: 'New blog post' }}
+      />
       <div className="admin-content admin-content-full">
         {loading ? (
-          <p>Loading dashboard…</p>
+          <AdminDashboardSkeleton />
         ) : (
           <>
             {stats && (
@@ -80,7 +82,7 @@ export default function AdminDashboardPage() {
                 <Link href="/admin/enquiries" className="admin-stat-card admin-stat-card-link">
                   <h3>Enquiries</h3>
                   <div className="value">{stats.enquiries.total}</div>
-                  <div className="sub">total contact form submissions</div>
+                  <div className="sub">contact form submissions</div>
                 </Link>
               </div>
             )}
@@ -92,9 +94,17 @@ export default function AdminDashboardPage() {
                     <h3>Recent blogs</h3>
                     <Link href="/admin/blogs">View all</Link>
                   </div>
-                  <div style={{ padding: '0 1.25rem 1rem' }}>
+                  <div className="admin-panel-body">
                     {recent.blogs.length === 0 ? (
-                      <p className="admin-empty">No blogs yet</p>
+                      <AdminEmptyState
+                        title="No blog posts yet"
+                        description="Publish your first article to appear here."
+                        action={
+                          <Link href="/admin/blogs/new" className="admin-btn admin-btn-primary admin-btn-sm">
+                            Create post
+                          </Link>
+                        }
+                      />
                     ) : (
                       recent.blogs.map((blog) => (
                         <div key={blog.id} className="admin-recent-item">
@@ -118,9 +128,12 @@ export default function AdminDashboardPage() {
                     <h3>Recent comments</h3>
                     <Link href="/admin/comments">View all</Link>
                   </div>
-                  <div style={{ padding: '0 1.25rem 1rem' }}>
+                  <div className="admin-panel-body">
                     {recent.comments.length === 0 ? (
-                      <p className="admin-empty">No recent comments</p>
+                      <AdminEmptyState
+                        title="No comments yet"
+                        description="Reader comments will show up here once submitted."
+                      />
                     ) : (
                       recent.comments.map((comment) => (
                         <div key={comment.id} className="admin-recent-item">
@@ -140,9 +153,12 @@ export default function AdminDashboardPage() {
                     <h3>Recent enquiries</h3>
                     <Link href="/admin/enquiries">View all</Link>
                   </div>
-                  <div style={{ padding: '0 1.25rem 1rem' }}>
+                  <div className="admin-panel-body">
                     {recent.enquiries.length === 0 ? (
-                      <p className="admin-empty">No enquiries yet</p>
+                      <AdminEmptyState
+                        title="No enquiries yet"
+                        description="Contact form submissions from the website will appear here."
+                      />
                     ) : (
                       recent.enquiries.map((enquiry) => (
                         <div key={enquiry.id} className="admin-recent-item">

@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { BlogGalleryUpload, GalleryImage } from '@/components/admin/BlogGalleryUpload';
 import { BlogPreview } from '@/components/admin/BlogPreview';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';

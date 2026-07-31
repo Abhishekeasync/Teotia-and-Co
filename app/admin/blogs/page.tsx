@@ -2,7 +2,19 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
+import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
+import { AdminAction, AdminActions } from '@/components/admin/AdminActions';
+import {
+  IconEdit,
+  IconExternal,
+  IconPublish,
+  IconTrash,
+  IconUnpublish,
+} from '@/components/admin/AdminIcons';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPagination } from '@/components/admin/AdminPagination';
+import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import { normalizeApiBlogs } from '@/lib/api/normalize';
 import { ApiBlog, ApiBlogListResponse } from '@/lib/api/types';
@@ -92,21 +104,27 @@ export default function AdminBlogsPage() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>Blogs</h2>
-        <Link href="/admin/blogs/new" className="admin-btn admin-btn-primary">
-          New blog post
-        </Link>
-      </header>
+      <AdminPageHeader
+        title="Blogs"
+        description="Create, publish, and manage blog posts"
+        primaryAction={{ href: '/admin/blogs/new', label: 'New blog post' }}
+      />
       <div className="admin-content">
         <div className="admin-panel">
           {loading ? (
-            <p className="admin-empty">Loading blogs…</p>
+            <div style={{ padding: '1.25rem' }}>
+              <AdminTableSkeleton rows={6} cols={6} />
+            </div>
           ) : blogs.length === 0 ? (
-            <p className="admin-empty">
-              No blogs yet.{' '}
-              <Link href="/admin/blogs/new">Create your first post</Link>
-            </p>
+            <AdminEmptyState
+              title="No blog posts yet"
+              description="Write your first article to start publishing on the site."
+              action={
+                <Link href="/admin/blogs/new" className="admin-btn admin-btn-primary admin-btn-sm">
+                  Create post
+                </Link>
+              }
+            />
           ) : (
             <div className="admin-table-wrap">
               <table className="admin-table">
@@ -134,42 +152,42 @@ export default function AdminBlogsPage() {
                           {blog.status}
                         </span>
                       </td>
-                      <td>{blog.viewCount ?? 0}</td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>
+                        {blog.viewCount ?? 0}
+                      </td>
                       <td>{formatDate(blog.publishedAt)}</td>
                       <td>
-                        <div className="admin-btn-group">
-                          <Link
+                        <AdminActions>
+                          <AdminAction
+                            label="Edit"
+                            icon={<IconEdit />}
                             href={`/admin/blogs/edit/${blog.id}`}
-                            className="admin-btn admin-btn-secondary admin-btn-sm"
-                          >
-                            Edit
-                          </Link>
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn-secondary admin-btn-sm"
+                          />
+                          <AdminAction
+                            label={blog.status === 'published' ? 'Unpublish' : 'Publish'}
+                            icon={blog.status === 'published' ? <IconUnpublish /> : <IconPublish />}
+                            variant={blog.status === 'published' ? 'warning' : 'success'}
                             disabled={actionId === blog.id}
+                            loading={actionId === blog.id}
                             onClick={() => handlePublishToggle(blog)}
-                          >
-                            {blog.status === 'published' ? 'Unpublish' : 'Publish'}
-                          </button>
+                          />
                           {blog.status === 'published' && (
-                            <Link
+                            <AdminAction
+                              label="View live"
+                              icon={<IconExternal />}
                               href={`/blog/${blog.slug}`}
-                              className="admin-btn admin-btn-secondary admin-btn-sm"
                               target="_blank"
-                            >
-                              View
-                            </Link>
+                            />
                           )}
-                          <button
-                            type="button"
-                            className="admin-btn admin-btn-danger admin-btn-sm"
+                          <AdminAction
+                            label="Delete"
+                            icon={<IconTrash />}
+                            variant="danger"
                             disabled={actionId === blog.id}
+                            loading={actionId === blog.id}
                             onClick={() => requestBlogDelete(blog)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+                          />
+                        </AdminActions>
                       </td>
                     </tr>
                   ))}
@@ -179,29 +197,12 @@ export default function AdminBlogsPage() {
           )}
         </div>
 
-        {totalPages > 1 && (
-          <div className="admin-btn-group">
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page <= 1 || loading}
-              onClick={() => loadBlogs(page - 1)}
-            >
-              Previous
-            </button>
-            <span style={{ alignSelf: 'center', fontSize: '0.875rem' }}>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              type="button"
-              className="admin-btn admin-btn-secondary admin-btn-sm"
-              disabled={page >= totalPages || loading}
-              onClick={() => loadBlogs(page + 1)}
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <AdminPagination
+          page={page}
+          totalPages={totalPages}
+          loading={loading}
+          onPageChange={loadBlogs}
+        />
       </div>
       {deleteDialog}
     </>

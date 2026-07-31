@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { BlogForm } from '@/components/admin/BlogForm';
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
+import { AdminPanelSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import { normalizeApiBlog } from '@/lib/api/normalize';
 import { ApiBlogDetailResponse } from '@/lib/api/types';
@@ -38,11 +40,12 @@ export default function EditBlogPage() {
 
   return (
     <>
-      <header className="admin-header">
-        <h2>{blog ? `Edit: ${blog.heading}` : 'Edit blog'}</h2>
-      </header>
+      <AdminPageHeader
+        title={blog ? blog.heading : 'Edit blog'}
+        description={blog ? 'Update content, images, and publish settings' : undefined}
+      />
       <div className="admin-content admin-content-centered">
-        {loading && <p>Loading blog…</p>}
+        {loading && <AdminPanelSkeleton />}
         {error && <div className="admin-error">{error}</div>}
         {!loading && !error && blog && (
           <BlogForm blogId={blog.id} initial={blog} />
