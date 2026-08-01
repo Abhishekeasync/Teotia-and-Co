@@ -4,16 +4,18 @@
  * Sources mock content from ../lib/blog-posts.ts (same as Next.js frontend).
  * Safe to re-run: skips admin if email exists; skips blogs if any row exists.
  *
- * Requires in .env: SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD (+ DB_* from Phase 1).
+ * Dev only — requires in .env: SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD (+ DB_*).
+ * Production: create admins manually; this script does not insert admin data.
  *
  * CLI: npm run seed   (or npm run db:setup = migrate + seed)
  */
+import bcrypt from 'bcrypt';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { blogPosts } from '../../lib/blog-posts';
-import { env } from '../src/config/env';
+import { env, isProduction } from '../src/config/env';
 import { closeDatabasePool, getPool } from '../src/config/database';
 import { runMigrations } from '../src/database/migrate';
-import { seedAdmin } from '../src/database/seedAdmin';
+import { BCRYPT_ROUNDS } from '../src/constants';
 import { logger } from '../src/utils/logger';
 import { slugify } from '../src/utils/slug';
 
@@ -51,6 +53,40 @@ function parseDisplayDate(display: string): Date {
   const month = MONTH_MAP[mon] ?? '01';
   const day = dayRaw.padStart(2, '0');
   return new Date(`2026-${month}-${day}T12:00:00.000Z`);
+}
+
+/** Creates the first CMS admin if none exists with SEED_ADMIN_EMAIL (dev only). */
+async function seedAdmin(): Promise<number> {
+  if (isProduction) {
+    throw new Error('Admin seed is disabled in production. Create admins manually.');
+  }
+
+  const email = env.SEED_ADMIN_EMAIL;
+  const password = env.SEED_ADMIN_PASSWORD;
+  if (!email || !password) {
+    throw new Error('SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD must be set in .env to run seed');
+  }
+
+  const pool = getPool();
+  const [existing] = await pool.query<RowDataPacket[]>(
+    'SELECT id FROM admins WHERE email = ? AND deleted_at IS NULL LIMIT 1',
+    [email],
+  );
+
+  if (existing.length > 0) {
+    logger.info('Admin seed skipped (already exists)', { email });
+    return existing[0].id as number;
+  }
+
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const name = 'Kunal Teotia';
+  const [result] = await pool.query<ResultSetHeader>(
+    'INSERT INTO admins (email, password_hash, name) VALUES (?, ?, ?)',
+    [email, passwordHash, name],
+  );
+
+  logger.info('Admin seeded', { email });
+  return result.insertId;
 }
 
 async function getOrCreateCategory(name: string): Promise<number> {
@@ -130,10 +166,11 @@ async function seedBlogs(adminId: number): Promise<void> {
 async function main(): Promise<void> {
   try {
     await runMigrations();
-    const adminId = await seedAdmin({ required: true });
-    if (adminId === null) {
-      throw new Error('Admin seed failed');
+    if (isProduction) {
+      logger.info('Seed skipped in production (no admin or mock blog data)');
+      return;
     }
+    const adminId = await seedAdmin();
     await seedCategoriesFromPosts();
     await seedBlogs(adminId);
     logger.info('Seed complete');
