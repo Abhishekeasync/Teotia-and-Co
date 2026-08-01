@@ -14,6 +14,7 @@ import { RowDataPacket } from 'mysql2';
 import { getPool, closeDatabasePool } from '../config/database';
 import { isProduction } from '../config/env';
 import { logger } from '../utils/logger';
+import { seedAdmin } from './seedAdmin';
 
 // dist/database → backend/migrations when built; same when run via ts-node from src/
 const MIGRATIONS_DIR = path.join(__dirname, '..', '..', 'migrations');
@@ -118,6 +119,7 @@ export async function runMigrations(): Promise<void> {
 async function main(): Promise<void> {
   try {
     await runMigrations();
+    await seedAdmin();
     logger.info('Migrations complete');
   } finally {
     await closeDatabasePool();
