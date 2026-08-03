@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { AdminNavigationGuardProvider } from '@/lib/hooks/AdminNavigationGuard';
 import './admin.css';
 
 export default function AdminLayout({
@@ -19,7 +20,9 @@ export default function AdminLayout({
 
   return (
     <AdminAuthGuard>
-      <AdminShell>{children}</AdminShell>
+      <AdminNavigationGuardProvider>
+        <AdminShell>{children}</AdminShell>
+      </AdminNavigationGuardProvider>
     </AdminAuthGuard>
   );
 }

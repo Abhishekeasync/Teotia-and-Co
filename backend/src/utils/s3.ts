@@ -83,6 +83,24 @@ export async function uploadBlogImage(file: Express.Multer.File): Promise<string
   return buildPublicObjectUrl(bucket, region, key);
 }
 
+export async function uploadAvatarImage(file: Express.Multer.File): Promise<string> {
+  const valid = assertImageUpload(file);
+  const { client, bucket, region } = requireS3();
+  const ext = MIME_EXTENSION[valid.mimetype.toLowerCase()] ?? 'bin';
+  const key = `${S3_PREFIX.avatars}/${randomUUID()}.${ext}`;
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: valid.buffer,
+      ContentType: valid.mimetype,
+    }),
+  );
+
+  return buildPublicObjectUrl(bucket, region, key);
+}
+
 /** Deletes S3 object when URL points at our bucket; ignores external or local paths. */
 export async function deleteBlogImageByUrl(url: string | null | undefined): Promise<void> {
   if (!url || !awsConfig.isConfigured) {

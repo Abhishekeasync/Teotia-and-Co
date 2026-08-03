@@ -43,6 +43,14 @@ function stringArrayPreprocess(value: unknown): unknown {
   return value;
 }
 
+function numberArrayPreprocess(value: unknown): unknown {
+  const arr = stringArrayPreprocess(value);
+  if (Array.isArray(arr)) {
+    return arr.map(Number).filter((n) => !isNaN(n));
+  }
+  return arr;
+}
+
 const tagNamesSchema = z.preprocess(
   stringArrayPreprocess,
   z.array(z.string().trim().min(1).max(100)).max(50).optional(),
@@ -51,6 +59,11 @@ const tagNamesSchema = z.preprocess(
 const imageUrlsSchema = z.preprocess(
   stringArrayPreprocess,
   z.array(z.url()).max(MAX_BLOG_IMAGES).optional(),
+);
+
+const authorIdsSchema = z.preprocess(
+  numberArrayPreprocess,
+  z.array(z.number().int().positive()).min(1).optional(),
 );
 
 export const createBlogBodySchema = z.object({
@@ -63,6 +76,7 @@ export const createBlogBodySchema = z.object({
     emptyToUndefined,
     z.string().trim().min(1).max(255).optional(),
   ),
+  authorIds: authorIdsSchema,
   featuredImageUrl: optionalNullableUrl,
   metaTitle: optionalNullableString(500),
   metaDescription: optionalNullableString(),

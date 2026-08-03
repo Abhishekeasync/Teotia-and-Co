@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { useAdminNavigationGuard } from '@/lib/hooks/AdminNavigationGuard';
 import {
+  IconAuthor,
   IconBlog,
   IconComment,
   IconDashboard,
@@ -16,6 +18,7 @@ import {
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', exact: true, Icon: IconDashboard },
   { href: '/admin/blogs', label: 'Blogs', Icon: IconBlog },
+  { href: '/admin/authors', label: 'Authors', Icon: IconAuthor },
   { href: '/admin/comments', label: 'Comments', Icon: IconComment },
   { href: '/admin/subscribers', label: 'Subscribers', Icon: IconUsers },
   { href: '/admin/enquiries', label: 'Enquiries', Icon: IconMail },
@@ -24,11 +27,31 @@ const NAV_ITEMS = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { admin, logout } = useAuth();
+  const { requestNavigation } = useAdminNavigationGuard();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
-    return pathname?.startsWith(href);
+    return pathname === href || pathname?.startsWith(`${href}/`);
+  };
+
+  const isSameNavTarget = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    return pathname === href;
+  };
+
+  const handleNavClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+    exact?: boolean
+  ) => {
+    if (isSameNavTarget(href, exact)) {
+      setSidebarOpen(false);
+      return;
+    }
+    event.preventDefault();
+    requestNavigation(href);
+    setSidebarOpen(false);
   };
 
   const handleLogout = async () => {
@@ -85,7 +108,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={active ? 'active' : undefined}
-                onClick={() => setSidebarOpen(false)}
+                onClick={(e) =>
+                  handleNavClick(e, item.href, 'exact' in item ? item.exact : undefined)
+                }
               >
                 <item.Icon className="admin-nav-icon" />
                 {item.label}

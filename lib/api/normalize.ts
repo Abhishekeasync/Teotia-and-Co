@@ -3,9 +3,17 @@
  * The API returns nested category objects and string[] tags; the UI expects flat fields.
  */
 
-import { ApiBlog } from './types';
+import { ApiAuthor, ApiBlog } from './types';
 
 type RawCategory = { id: number; name: string; slug: string };
+
+type RawAuthor = {
+  id?: number;
+  name?: string;
+  slug?: string;
+  designation?: string | null;
+  profileImageUrl?: string | null;
+};
 
 type RawGalleryImage = {
   id: number;
@@ -34,6 +42,7 @@ export type RawApiBlog = {
   categorySlug?: string;
   tags?: unknown;
   authorName?: string;
+  authors?: RawAuthor[];
   createdAt?: string;
   updatedAt?: string;
   viewCount?: number;
@@ -80,6 +89,25 @@ function normalizeGalleryImages(
     .sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
+function normalizeAuthors(authors: RawApiBlog['authors']): ApiAuthor[] | undefined {
+  if (!Array.isArray(authors) || authors.length === 0) return undefined;
+
+  const normalized = authors
+    .map((author) => {
+      if (!author?.id || !author.name || !author.slug) return null;
+      return {
+        id: author.id,
+        name: author.name,
+        slug: author.slug,
+        designation: author.designation ?? null,
+        profileImageUrl: author.profileImageUrl ?? null,
+      };
+    })
+    .filter((author): author is ApiAuthor => author !== null);
+
+  return normalized.length > 0 ? normalized : undefined;
+}
+
 /** Map a single raw blog record from any API endpoint to ApiBlog. */
 export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
   const category = raw.category;
@@ -102,6 +130,7 @@ export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
     categorySlug: category?.slug ?? raw.categorySlug ?? '',
     tags: normalizeTagNames(raw.tags),
     authorName: raw.authorName ?? 'TEOTIA & CO.',
+    authors: normalizeAuthors(raw.authors),
     createdAt: raw.createdAt ?? new Date().toISOString(),
     updatedAt: raw.updatedAt ?? new Date().toISOString(),
     viewCount: raw.viewCount,

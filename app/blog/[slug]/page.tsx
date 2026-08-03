@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import '../../page-styles.css';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { BlogAuthorByline } from '@/components/blog/BlogAuthorByline';
 import { Stagger } from '@/components/Reveal';
 import { publicApi } from '@/lib/api/client';
 import { mapApiBlogToPost, mapApiBlogsToPost } from '@/lib/api/mappers';
@@ -73,7 +74,9 @@ export async function generateMetadata({ params }: BlogPostPageProps) {
       images: blog.ogImageUrl || blog.featuredImageUrl || undefined,
       type: 'article',
       publishedTime: blog.publishedAt || undefined,
-      authors: [blog.authorName],
+      authors: blog.authors && blog.authors.length > 0
+        ? blog.authors.map(a => a.name)
+        : [blog.authorName],
     },
   };
 }
@@ -105,23 +108,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           )}
 
-          <div className="blog-author-row blog-post-author-row">
-            <div className="blog-author-info">
-              <Image
-                src={post.authorAvatar}
-                alt={blog.authorName}
-                width={40}
-                height={40}
-                className="blog-author-avatar"
+          <div className="blog-author-row blog-post-author-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <BlogAuthorByline
+                author={post.author}
+                authorAvatar={post.authorAvatar}
+                authors={post.authors}
+                avatarSize={48}
+                nameClassName="blog-author-name hover:text-brand transition-colors"
+                showDesignation={(post.authors?.length ?? 0) === 1}
               />
-              <div>
-                <div className="blog-author-name">{blog.authorName}</div>
-                <div className="blog-author-meta">
-                  {post.date} · {post.readTime}
-                </div>
-              </div>
             </div>
-            <BlogPostShare heading={blog.heading} links={shareLinks} />
+            
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+              <div className="blog-author-meta" style={{ fontSize: '0.9rem', color: '#666' }}>
+                {post.date} · {post.readTime}
+              </div>
+              <BlogPostShare heading={blog.heading} links={shareLinks} />
+            </div>
           </div>
 
           {(blog.featuredImageUrl || (blog.galleryImages?.length ?? 0) > 0) && (

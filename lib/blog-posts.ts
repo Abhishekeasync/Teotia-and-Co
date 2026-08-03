@@ -1,3 +1,5 @@
+import { ApiAuthor } from './api/types';
+
 export type BlogPost = {
   slug: string;
   title: string;
@@ -6,6 +8,7 @@ export type BlogPost = {
   image: string;
   author: string;
   authorAvatar: string;
+  authors?: ApiAuthor[];
   date: string;
   readTime: string;
   category: string;

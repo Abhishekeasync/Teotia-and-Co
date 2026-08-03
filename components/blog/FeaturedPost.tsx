@@ -21,7 +21,7 @@ export function FeaturedPost({ post, className = '' }: FeaturedPostProps) {
     <motion.article variants={fadeUpVariants} className={`${cardSurface} ${className}`}>
       <Link
         href={`/blog/${post.slug}`}
-        className="flex flex-col h-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-3xl"
+        className="flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-t-3xl"
       >
         <div className="relative aspect-[16/10] lg:aspect-[16/11] xl:aspect-[16/10] overflow-hidden bg-gray-100">
           <Image
@@ -41,24 +41,26 @@ export function FeaturedPost({ post, className = '' }: FeaturedPostProps) {
           </div>
         </div>
 
-        <div className="flex flex-col flex-1 p-6 lg:p-8 lg:pt-7">
+        <div className="flex flex-col flex-1 p-6 pb-0 lg:p-8 lg:pt-7 lg:pb-0">
           <h2 className="font-display text-2xl lg:text-[1.75rem] xl:text-3xl font-bold text-heading leading-[1.2] mb-3 line-clamp-3">
             {post.title}
           </h2>
-          <p className="text-base text-gray-600 leading-relaxed mb-6 line-clamp-3 max-w-3xl">
+          <p className="text-base text-gray-600 leading-relaxed line-clamp-3 max-w-3xl">
             {post.excerpt}
           </p>
-          <div className="mt-auto pt-2 border-t border-gray-100">
-            <BlogPostMeta
-              author={post.author}
-              authorAvatar={post.authorAvatar}
-              date={post.date}
-              readTime={post.readTime}
-              variant="featured"
-            />
-          </div>
         </div>
       </Link>
+
+      <div className="mt-auto p-6 pt-4 lg:p-8 lg:pt-5 border-t border-gray-100">
+        <BlogPostMeta
+          author={post.author}
+          authorAvatar={post.authorAvatar}
+          authors={post.authors}
+          date={post.date}
+          readTime={post.readTime}
+          variant="featured"
+        />
+      </div>
     </motion.article>
   );
 }

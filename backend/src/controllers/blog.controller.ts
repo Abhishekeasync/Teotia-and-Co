@@ -11,6 +11,7 @@ export const listPublicBlogs = asyncHandler(async (req: Request, res: Response) 
     search?: string;
     category?: string;
     tag?: string;
+    author?: string;
     sort?: 'latest' | 'oldest' | 'popular';
   };
   const pagination = parsePaginationQuery(req.query);
@@ -19,6 +20,7 @@ export const listPublicBlogs = asyncHandler(async (req: Request, res: Response) 
       search: query.search,
       categorySlug: query.category,
       tagName: query.tag,
+      authorSlug: query.author,
       sort: query.sort ?? 'latest',
     },
     pagination,

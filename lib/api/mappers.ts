@@ -38,14 +38,27 @@ function formatDate(isoString: string | null | undefined): string {
  * Maps backend field names to frontend expectations.
  */
 export function mapApiBlogToPost(apiBlog: ApiBlog): BlogPost {
+  let primaryAuthorName = 'TEOTIA & CO.';
+  let primaryAuthorAvatar = '/assets/images/static.wixstatic.com/d8ab7d3a-12ec-4da4-96ad-a9761e57c1f0_edited-4fa8dd2ff7.png';
+
+  if (apiBlog.authors && apiBlog.authors.length > 0) {
+    primaryAuthorName = apiBlog.authors.map((author) => author.name).join(', ');
+    if (apiBlog.authors[0].profileImageUrl) {
+      primaryAuthorAvatar = apiBlog.authors[0].profileImageUrl;
+    }
+  } else if (apiBlog.authorName) {
+    primaryAuthorName = apiBlog.authorName;
+  }
+
   return {
     slug: apiBlog.slug || '',
     title: apiBlog.heading || 'Untitled',
     excerpt: apiBlog.shortDescription || '',
     content: [apiBlog.shortDescription || '', apiBlog.body || ''],
     image: apiBlog.featuredImageUrl || '/assets/images/placeholder.jpg',
-    author: apiBlog.authorName || 'TEOTIA & CO.',
-    authorAvatar: '/assets/images/static.wixstatic.com/d8ab7d3a-12ec-4da4-96ad-a9761e57c1f0_edited-4fa8dd2ff7.png',
+    author: primaryAuthorName,
+    authorAvatar: primaryAuthorAvatar,
+    authors: apiBlog.authors,
     date: formatDate(apiBlog.publishedAt || apiBlog.createdAt),
     readTime: calculateReadTime(apiBlog.body),
     category: apiBlog.categoryName || 'Uncategorized',

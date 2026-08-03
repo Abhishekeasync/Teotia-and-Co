@@ -12,6 +12,7 @@ import {
 import { BlogRepository, CreateBlogRow, UpdateBlogRow } from '../repositories/blog.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { TagRepository } from '../repositories/tag.repository';
+import { AuthorRepository } from '../repositories/author.repository';
 import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 import { notifySubscribersOfNewPost } from '../utils/mail';
@@ -26,6 +27,7 @@ export type CreateBlogInput = {
   categoryId: number;
   tagNames?: string[];
   authorName?: string;
+  authorIds?: number[];
   featuredImageUrl?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
@@ -42,6 +44,7 @@ export class BlogService {
     private readonly blogRepository = new BlogRepository(),
     private readonly categoryRepository = new CategoryRepository(),
     private readonly tagRepository = new TagRepository(),
+    private readonly authorRepository = new AuthorRepository(),
   ) {}
 
   private async resolveCategory(categoryId: number) {
@@ -52,18 +55,40 @@ export class BlogService {
     return category;
   }
 
+  private formatAuthorDisplayName(names: string[]): string {
+    return names.join(', ');
+  }
+
+  private async resolveAuthorDisplayName(authorIds: number[]): Promise<string> {
+    const names: string[] = [];
+    for (const authorId of authorIds) {
+      const author = await this.authorRepository.findById(authorId);
+      if (!author) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, `Invalid author id: ${authorId}`);
+      }
+      names.push(author.name);
+    }
+    return this.formatAuthorDisplayName(names);
+  }
+
   private async toPublicSummary(blogId: number, record: BlogRecord): Promise<PublicBlogSummary> {
     const category = await this.categoryRepository.findById(record.categoryId);
     if (!category) {
       throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Blog category missing');
     }
     const tags = await this.tagRepository.listNamesByBlogId(blogId);
+    const authors = await this.authorRepository.findByBlogId(blogId);
+    const authorName =
+      authors.length > 0
+        ? this.formatAuthorDisplayName(authors.map((author) => author.name))
+        : record.authorName;
     return {
       slug: record.slug,
       heading: record.heading,
       shortDescription: record.shortDescription,
       featuredImageUrl: record.featuredImageUrl,
-      authorName: record.authorName,
+      authorName,
+      authors,
       publishedAt: record.publishedAt ? record.publishedAt.toISOString() : null,
       category,
       tags,
@@ -133,13 +158,17 @@ export class BlogService {
     }
 
     const slug = await this.allocateSlug(input.heading);
+    let authorName = input.authorName?.trim() || adminName;
+    if (input.authorIds && input.authorIds.length > 0) {
+      authorName = await this.resolveAuthorDisplayName(input.authorIds);
+    }
     const row: CreateBlogRow = {
       heading: input.heading.trim(),
       slug,
       shortDescription: input.shortDescription.trim(),
       body: input.body,
       categoryId: input.categoryId,
-      authorName: input.authorName?.trim() || adminName,
+      authorName,
       createdByAdminId: adminId,
       featuredImageUrl: input.featuredImageUrl ?? null,
       metaTitle: input.metaTitle ?? null,
@@ -152,6 +181,9 @@ export class BlogService {
     const blogId = await this.blogRepository.create(row);
     const tagIds = await this.tagRepository.findOrCreateIds(input.tagNames ?? []);
     await this.tagRepository.replaceBlogTags(blogId, tagIds);
+    if (input.authorIds && input.authorIds.length > 0) {
+      await this.authorRepository.replaceBlogAuthors(blogId, input.authorIds);
+    }
 
     if (input.imageUrls !== undefined) {
       const urls = this.assertImageLimit(input.imageUrls);
@@ -182,7 +214,9 @@ export class BlogService {
     }
     if (input.shortDescription !== undefined) patch.shortDescription = input.shortDescription.trim();
     if (input.body !== undefined) patch.body = input.body;
-    if (input.authorName !== undefined) patch.authorName = input.authorName.trim();
+    if (input.authorName !== undefined && input.authorIds === undefined) {
+      patch.authorName = input.authorName.trim();
+    }
     if (input.metaTitle !== undefined) patch.metaTitle = input.metaTitle;
     if (input.metaDescription !== undefined) patch.metaDescription = input.metaDescription;
     if (input.canonicalUrl !== undefined) patch.canonicalUrl = input.canonicalUrl;
@@ -212,6 +246,15 @@ export class BlogService {
     if (input.tagNames !== undefined) {
       const tagIds = await this.tagRepository.findOrCreateIds(input.tagNames);
       await this.tagRepository.replaceBlogTags(id, tagIds);
+    }
+
+    if (input.authorIds !== undefined) {
+      await this.authorRepository.replaceBlogAuthors(id, input.authorIds);
+      if (input.authorIds.length > 0) {
+        await this.blogRepository.update(id, {
+          authorName: await this.resolveAuthorDisplayName(input.authorIds),
+        });
+      }
     }
 
     if (input.imageUrls !== undefined) {
@@ -485,14 +528,27 @@ export class BlogService {
       tagId = found;
     }
 
+    let authorId: number | undefined;
+    if (filters.authorSlug?.trim()) {
+      const author = await this.authorRepository.findBySlug(filters.authorSlug.trim());
+      if (!author) {
+        return {
+          blogs: [] as PublicBlogSummary[],
+          pagination: buildPaginationMeta(0, pagination.page, pagination.limit),
+        };
+      }
+      authorId = author.id;
+    }
+
     const [items, total] = await Promise.all([
       this.blogRepository.listPublic(
         filters,
         pagination,
         category?.id,
         tagId,
+        authorId,
       ),
-      this.blogRepository.countPublic(filters, category?.id, tagId),
+      this.blogRepository.countPublic(filters, category?.id, tagId, authorId),
     ]);
 
     const blogs = await Promise.all(items.map((row) => this.toPublicSummary(row.id, row)));

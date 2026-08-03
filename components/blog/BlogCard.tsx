@@ -45,7 +45,7 @@ export function BlogCard({
     >
       <Link
         href={`/blog/${post.slug}`}
-        className="flex h-full w-full flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-2xl"
+        className="flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 rounded-t-2xl"
       >
         <div
           className={`relative shrink-0 overflow-hidden bg-gray-100 ${
@@ -71,7 +71,7 @@ export function BlogCard({
           </div>
         </div>
 
-        <div className={`flex flex-1 flex-col min-w-0 ${isSmall ? 'p-4' : 'p-5 lg:p-6'}`}>
+        <div className={`flex flex-1 flex-col min-w-0 ${isSmall ? 'p-4 pb-0' : 'p-5 pb-0 lg:p-6 lg:pb-0'}`}>
           <h3
             className={`font-display font-bold text-heading leading-snug mb-2 line-clamp-2 ${
               isSmall ? 'text-base' : 'text-lg lg:text-xl'
@@ -81,22 +81,24 @@ export function BlogCard({
           </h3>
           <p
             className={`text-gray-600 leading-relaxed flex-1 ${
-              isSmall ? 'text-sm mb-3 line-clamp-2' : 'text-sm mb-4 line-clamp-3'
+              isSmall ? 'text-sm mb-0 line-clamp-2' : 'text-sm mb-0 line-clamp-3'
             }`}
           >
             {post.excerpt}
           </p>
-          <div className="mt-auto">
-            <BlogPostMeta
-              author={post.author}
-              authorAvatar={post.authorAvatar}
-              date={post.date}
-              readTime={post.readTime}
-              variant={isSmall ? 'timestamps' : 'regular'}
-            />
-          </div>
         </div>
       </Link>
+
+      <div className={`mt-auto ${isSmall ? 'p-4 pt-3' : 'p-5 pt-4 lg:p-6 lg:pt-4'}`}>
+        <BlogPostMeta
+          author={post.author}
+          authorAvatar={post.authorAvatar}
+          authors={post.authors}
+          date={post.date}
+          readTime={post.readTime}
+          variant={isSmall ? 'timestamps' : 'regular'}
+        />
+      </div>
 
       {post.tags && post.tags.length > 0 && (
         <div className={isSmall ? 'px-4 pb-4' : 'px-5 pb-5 lg:px-6 lg:pb-6'}>

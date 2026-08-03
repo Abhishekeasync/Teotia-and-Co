@@ -13,6 +13,18 @@ function mapCategory(row: CategoryRow): BlogCategoryRef {
 }
 
 export class CategoryRepository {
+  async listAll(): Promise<BlogCategoryRef[]> {
+    const connection = await acquireConnection();
+    try {
+      const [rows] = await connection.query<CategoryRow[]>(
+        'SELECT id, name, slug FROM categories ORDER BY name ASC',
+      );
+      return rows.map(mapCategory);
+    } finally {
+      connection.release();
+    }
+  }
+
   async findById(id: number): Promise<BlogCategoryRef | null> {
     const connection = await acquireConnection();
     try {
