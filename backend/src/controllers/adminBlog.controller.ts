@@ -71,7 +71,11 @@ export const createBlog = asyncHandler(async (req: Request, res: Response) => {
 
 export const listAdminBlogs = asyncHandler(async (req: Request, res: Response) => {
   const pagination = parsePaginationQuery(req.query);
-  const result = await blogService.listAdmin(pagination);
+  const query = req.query as { search?: string; excludeId?: string };
+  const result = await blogService.listAdmin(pagination, {
+    search: query.search,
+    excludeId: query.excludeId ? Number(query.excludeId) : undefined,
+  });
   return ApiResponse.success(res, result, '');
 });
 

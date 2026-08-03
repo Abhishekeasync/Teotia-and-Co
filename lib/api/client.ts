@@ -234,10 +234,17 @@ export const adminApi = {
 
   // Blog APIs
   blogs: {
-    list: (params?: { page?: number; limit?: number }) => {
+    list: (params?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      excludeId?: number;
+    }) => {
       const query = new URLSearchParams();
       if (params?.page) query.set('page', params.page.toString());
       if (params?.limit) query.set('limit', params.limit.toString());
+      if (params?.search) query.set('search', params.search);
+      if (params?.excludeId) query.set('excludeId', params.excludeId.toString());
 
       return fetchApi(`/admin/blogs/list-all-blogs?${query.toString()}`, {
         requireAuth: true,

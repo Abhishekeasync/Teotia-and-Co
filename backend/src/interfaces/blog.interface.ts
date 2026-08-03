@@ -37,6 +37,18 @@ export type BlogRecord = {
   deletedAt: Date | null;
 };
 
+export type RelatedPostSummary = {
+  id: number;
+  slug: string;
+  heading: string;
+  shortDescription: string;
+  featuredImageUrl: string | null;
+  publishedAt: string | null;
+  category: BlogCategoryRef;
+  /** Present on admin responses so editors can see draft/unpublished picks. */
+  status?: BlogStatus;
+};
+
 export type PublicBlogSummary = {
   slug: string;
   heading: string;
@@ -47,6 +59,7 @@ export type PublicBlogSummary = {
   publishedAt: string | null;
   category: BlogCategoryRef;
   tags: string[];
+  relatedPosts?: RelatedPostSummary[];
 };
 
 export type BlogImageItem = {

@@ -1,4 +1,5 @@
 import type { GalleryImage } from '@/components/admin/BlogGalleryUpload';
+import type { RelatedPostItem } from '@/components/admin/RelatedPostsField';
 
 const PREFIX = 'teotia-admin-blog-draft';
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
@@ -15,6 +16,7 @@ export type BlogDraftData = {
   metaDescription: string;
   canonicalUrl: string;
   authorIds: number[];
+  relatedPosts: RelatedPostItem[];
   galleryImages: GalleryImage[];
   publishType: 'draft' | 'publish_now' | 'scheduled';
   scheduledPublishAt: string;
@@ -90,6 +92,7 @@ export async function writeBlogDraft(
     metaDescription: snapshot.metaDescription,
     canonicalUrl: snapshot.canonicalUrl,
     authorIds: snapshot.authorIds,
+    relatedPosts: snapshot.relatedPosts,
     galleryImages: snapshot.galleryImages,
     publishType: snapshot.publishType,
     scheduledPublishAt: snapshot.scheduledPublishAt,
@@ -156,6 +159,7 @@ export async function applyBlogDraft(
       metaDescription: draft.metaDescription,
       canonicalUrl: draft.canonicalUrl,
       authorIds: draft.authorIds,
+      relatedPosts: draft.relatedPosts ?? [],
       galleryImages: draft.galleryImages,
       publishType: draft.publishType ?? 'draft',
       scheduledPublishAt: draft.scheduledPublishAt ?? '',
@@ -180,6 +184,10 @@ export function cloneBlogSnapshot(snapshot: BlogDraftSnapshot): BlogDraftSnapsho
   return {
     ...snapshot,
     authorIds: [...snapshot.authorIds],
+    relatedPosts: snapshot.relatedPosts.map((post) => ({
+      ...post,
+      category: { ...post.category },
+    })),
     galleryImages: snapshot.galleryImages.map((img) => ({ ...img })),
     featuredFile: snapshot.featuredFile,
     ogFile: snapshot.ogFile,
@@ -207,6 +215,11 @@ export function blogSnapshotsEqual(a: BlogDraftSnapshot, b: BlogDraftSnapshot): 
   const sortedA = [...a.authorIds].sort((x, y) => x - y);
   const sortedB = [...b.authorIds].sort((x, y) => x - y);
   if (sortedA.some((id, i) => id !== sortedB[i])) return false;
+
+  if (a.relatedPosts.length !== b.relatedPosts.length) return false;
+  if (a.relatedPosts.some((post, index) => post.id !== b.relatedPosts[index]?.id)) {
+    return false;
+  }
 
   if (fileFingerprint(a.featuredFile) !== fileFingerprint(b.featuredFile)) return false;
   if (fileFingerprint(a.ogFile) !== fileFingerprint(b.ogFile)) return false;

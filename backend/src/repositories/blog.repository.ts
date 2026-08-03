@@ -110,6 +110,11 @@ function sortClause(sort: PublicBlogSort): string {
   }
 }
 
+export type AdminBlogListFilters = {
+  search?: string;
+  excludeId?: number;
+};
+
 export class BlogRepository {
   async slugTaken(slug: string, excludeId?: number): Promise<boolean> {
     const connection = await acquireConnection();
@@ -374,16 +379,34 @@ export class BlogRepository {
     }
   }
 
-  async countAdmin(): Promise<number> {
+  async countAdmin(filters: AdminBlogListFilters = {}): Promise<number> {
+    const { where, params } = this.buildAdminWhere(filters);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
-        'SELECT COUNT(*) AS total FROM blogs WHERE deleted_at IS NULL',
+        `SELECT COUNT(*) AS total FROM blogs WHERE ${where}`,
+        params,
       );
       return Number(rows[0]?.total ?? 0);
     } finally {
       connection.release();
     }
+  }
+
+  private buildAdminWhere(filters: AdminBlogListFilters): { where: string; params: unknown[] } {
+    const clauses = ['deleted_at IS NULL'];
+    const params: unknown[] = [];
+
+    if (filters.search?.trim()) {
+      clauses.push('heading LIKE ?');
+      params.push(`%${filters.search.trim()}%`);
+    }
+    if (filters.excludeId !== undefined) {
+      clauses.push('id <> ?');
+      params.push(filters.excludeId);
+    }
+
+    return { where: clauses.join(' AND '), params };
   }
 
   /** Count all blogs (including deleted, for admin dashboard). */
@@ -419,16 +442,20 @@ export class BlogRepository {
     }
   }
 
-  async listAdmin(pagination: PaginationParams): Promise<BlogRecord[]> {
+  async listAdmin(
+    pagination: PaginationParams,
+    filters: AdminBlogListFilters = {},
+  ): Promise<BlogRecord[]> {
+    const { where, params } = this.buildAdminWhere(filters);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<BlogRow[]>(
         `SELECT ${BLOG_SELECT.replace(/\n/g, ' ')}
          FROM blogs
-         WHERE deleted_at IS NULL
+         WHERE ${where}
          ORDER BY updated_at DESC, id DESC
          LIMIT ? OFFSET ?`,
-        [pagination.limit, pagination.offset],
+        [...params, pagination.limit, pagination.offset],
       );
       return rows.map(mapBlog);
     } finally {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MAX_BLOG_IMAGES } from '../constants';
+import { MAX_BLOG_IMAGES, MAX_RELATED_POSTS } from '../constants';
 
 const emptyToUndefined = (value: unknown) =>
   value === '' || value === undefined || value === null ? undefined : value;
@@ -66,7 +66,18 @@ const authorIdsSchema = z.preprocess(
   z.array(z.number().int().positive()).optional(),
 );
 
-export const createBlogBodySchema = z.object({
+const relatedBlogIdsSchema = z.preprocess(
+  numberArrayPreprocess,
+  z
+    .array(z.number().int().positive())
+    .max(MAX_RELATED_POSTS)
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: 'Duplicate related post ids are not allowed',
+    })
+    .optional(),
+);
+
+const blogBodySchema = z.object({
   heading: z.string().trim().min(1).max(500),
   shortDescription: z.string().trim().min(1),
   body: z.string().min(1),
@@ -77,6 +88,7 @@ export const createBlogBodySchema = z.object({
     z.string().trim().min(1).max(255).optional(),
   ),
   authorIds: authorIdsSchema,
+  relatedBlogIds: relatedBlogIdsSchema,
   featuredImageUrl: optionalNullableUrl,
   metaTitle: optionalNullableString(500),
   metaDescription: optionalNullableString(),
@@ -90,7 +102,22 @@ export const createBlogBodySchema = z.object({
   ),
 });
 
-export const updateBlogBodySchema = createBlogBodySchema.partial();
+function requireScheduledPublishAt(
+  data: { publishType?: 'draft' | 'publish_now' | 'scheduled'; scheduledPublishAt?: string | null },
+  ctx: z.RefinementCtx,
+) {
+  if (data.publishType === 'scheduled' && (data.scheduledPublishAt === undefined || data.scheduledPublishAt === null)) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'scheduledPublishAt is required when publishType is scheduled',
+      path: ['scheduledPublishAt'],
+    });
+  }
+}
+
+export const createBlogBodySchema = blogBodySchema.superRefine(requireScheduledPublishAt);
+
+export const updateBlogBodySchema = blogBodySchema.partial().superRefine(requireScheduledPublishAt);
 
 export const blogIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),
@@ -117,4 +144,6 @@ export const publicBlogListQuerySchema = z.object({
 export const adminBlogListQuerySchema = z.object({
   page: z.unknown().optional(),
   limit: z.unknown().optional(),
+  search: z.string().trim().max(200).optional(),
+  excludeId: z.coerce.number().int().positive().optional(),
 });

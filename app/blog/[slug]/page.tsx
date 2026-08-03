@@ -6,10 +6,11 @@ import { BlogCard } from '@/components/blog/BlogCard';
 import { BlogAuthorByline } from '@/components/blog/BlogAuthorByline';
 import { Stagger } from '@/components/Reveal';
 import { publicApi } from '@/lib/api/client';
-import { mapApiBlogToPost, mapApiBlogsToPost } from '@/lib/api/mappers';
+import { mapApiBlogToPost, mapApiBlogsToPost, mapRelatedPostsToBlogPosts } from '@/lib/api/mappers';
 import { ApiBlogDetailResponse, ApiBlogListResponse, ApiShareLinksResponse } from '@/lib/api/types';
 import { sanitizeHtml } from '@/lib/utils/sanitize';
 import { BlogComments } from '@/components/blog/BlogComments';
+import { BlogRelatedPosts } from '@/components/blog/BlogRelatedPosts';
 import { BlogHeroCarousel } from '@/components/blog/BlogHeroCarousel';
 import { BlogPostShare, BlogShareBar } from '@/components/blog/BlogPostShare';
 import { BlogTagList } from '@/components/blog/BlogTagList';
@@ -88,13 +89,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!blog) notFound();
 
   const post = mapApiBlogToPost(blog);
-  const recentPosts = await getRecentBlogs(slug);
+  const relatedPosts = mapRelatedPostsToBlogPosts(blog.relatedPosts ?? []);
+  const hasRelatedPosts = relatedPosts.length > 0;
+  const recentPosts = hasRelatedPosts ? [] : await getRecentBlogs(slug);
   const shareLinks = await getShareLinks(slug, blog.heading);
 
   return (
     <>
-      <article className="blog-post-page">
-        <div className="blog-post-inner">
+      <div
+        className={`blog-post-layout${hasRelatedPosts ? '' : ' blog-post-layout--centered'}`}
+      >
+        <article className="blog-post-page">
+          <div className="blog-post-inner">
           <Link href="/blog" className="blog-all-posts">
             ← All Posts
           </Link>
@@ -156,8 +162,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           {/* Comments Section */}
           <BlogComments slug={slug} />
+
+          {hasRelatedPosts && (
+            <div className="blog-related-posts-mobile">
+              <BlogRelatedPosts posts={relatedPosts} />
+            </div>
+          )}
         </div>
       </article>
+
+      {hasRelatedPosts && (
+        <div className="blog-post-sidebar">
+          <BlogRelatedPosts posts={relatedPosts} />
+        </div>
+      )}
+      </div>
 
       {/* Recent Posts */}
       {recentPosts.length > 0 && (

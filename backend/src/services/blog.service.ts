@@ -1,5 +1,5 @@
 import { env } from '../config/env';
-import { HTTP_STATUS, MAX_BLOG_IMAGES } from '../constants';
+import { HTTP_STATUS, MAX_BLOG_IMAGES, MAX_RELATED_POSTS } from '../constants';
 import {
   AdminBlogDetail,
   BlogImageItem,
@@ -8,8 +8,10 @@ import {
   PublicBlogDetail,
   PublicBlogListFilters,
   PublicBlogSummary,
+  RelatedPostSummary,
 } from '../interfaces/blog.interface';
 import { BlogRepository, CreateBlogRow, UpdateBlogRow } from '../repositories/blog.repository';
+import { BlogRelatedRepository, RelatedPostRow } from '../repositories/blogRelated.repository';
 import { CategoryRepository } from '../repositories/category.repository';
 import { TagRepository } from '../repositories/tag.repository';
 import { AuthorRepository } from '../repositories/author.repository';
@@ -35,15 +37,22 @@ export type CreateBlogInput = {
   ogImageUrl?: string | null;
   /** Gallery image URLs (max MAX_BLOG_IMAGES). */
   imageUrls?: string[];
+  relatedBlogIds?: number[];
   publishType?: 'draft' | 'publish_now' | 'scheduled';
   scheduledPublishAt?: Date | null;
 };
 
 export type UpdateBlogInput = Partial<CreateBlogInput>;
 
+export type AdminBlogListFilters = {
+  search?: string;
+  excludeId?: number;
+};
+
 export class BlogService {
   constructor(
     private readonly blogRepository = new BlogRepository(),
+    private readonly blogRelatedRepository = new BlogRelatedRepository(),
     private readonly categoryRepository = new CategoryRepository(),
     private readonly tagRepository = new TagRepository(),
     private readonly authorRepository = new AuthorRepository(),
@@ -73,7 +82,64 @@ export class BlogService {
     return this.formatAuthorDisplayName(names);
   }
 
-  private async toPublicSummary(blogId: number, record: BlogRecord): Promise<PublicBlogSummary> {
+  private mapRelatedPosts(
+    rows: RelatedPostRow[],
+    includeStatus = false,
+  ): RelatedPostSummary[] {
+    return rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      heading: row.heading,
+      shortDescription: row.shortDescription,
+      featuredImageUrl: row.featuredImageUrl,
+      publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
+      category: {
+        id: row.categoryId,
+        name: row.categoryName,
+        slug: row.categorySlug,
+      },
+      ...(includeStatus ? { status: row.status } : {}),
+    }));
+  }
+
+  private async validateRelatedBlogIds(blogId: number | null, relatedBlogIds: number[]): Promise<number[]> {
+    const uniqueIds = [...new Set(relatedBlogIds)];
+
+    if (uniqueIds.length > MAX_RELATED_POSTS) {
+      throw new ApiError(
+        HTTP_STATUS.BAD_REQUEST,
+        `A blog can have at most ${MAX_RELATED_POSTS} related posts`,
+      );
+    }
+
+    if (blogId !== null && uniqueIds.includes(blogId)) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'A blog cannot be related to itself');
+    }
+
+    if (uniqueIds.length === 0) {
+      return [];
+    }
+
+    const validCount = await this.blogRelatedRepository.countValidRelatedIds(
+      uniqueIds,
+      blogId ?? undefined,
+    );
+    if (validCount !== uniqueIds.length) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'One or more related blog ids are invalid');
+    }
+
+    return uniqueIds;
+  }
+
+  private async toPublicSummary(
+    blogId: number,
+    record: BlogRecord,
+    options?: {
+      relatedRows?: RelatedPostRow[];
+      includeRelatedStatus?: boolean;
+      publishedRelatedOnly?: boolean;
+    },
+  ): Promise<PublicBlogSummary> {
     const category = await this.categoryRepository.findById(record.categoryId);
     if (!category) {
       throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Blog category missing');
@@ -84,6 +150,11 @@ export class BlogService {
       authors.length > 0
         ? this.formatAuthorDisplayName(authors.map((author) => author.name))
         : record.authorName;
+    const related =
+      options?.relatedRows ??
+      (options?.publishedRelatedOnly === false
+        ? await this.blogRelatedRepository.listByBlogId(blogId)
+        : await this.blogRelatedRepository.listPublishedByBlogId(blogId));
     return {
       slug: record.slug,
       heading: record.heading,
@@ -94,11 +165,15 @@ export class BlogService {
       publishedAt: record.publishedAt ? record.publishedAt.toISOString() : null,
       category,
       tags,
+      relatedPosts: this.mapRelatedPosts(related, options?.includeRelatedStatus),
     };
   }
 
-  private async toPublicDetail(record: BlogRecord): Promise<PublicBlogDetail> {
-    const summary = await this.toPublicSummary(record.id, record);
+  private async toPublicDetail(
+    record: BlogRecord,
+    relatedRows?: RelatedPostRow[],
+  ): Promise<PublicBlogDetail> {
+    const summary = await this.toPublicSummary(record.id, record, { relatedRows });
     const images = await this.blogRepository.listImageUrls(record.id);
     return {
       ...summary,
@@ -121,8 +196,17 @@ export class BlogService {
     return urls.slice(0, MAX_BLOG_IMAGES);
   }
 
-  private async toAdminDetail(record: BlogRecord): Promise<AdminBlogDetail> {
-    const summary = await this.toPublicSummary(record.id, record);
+  private async toAdminDetail(
+    record: BlogRecord,
+    relatedRows?: RelatedPostRow[],
+  ): Promise<AdminBlogDetail> {
+    const related =
+      relatedRows ?? (await this.blogRelatedRepository.listByBlogId(record.id));
+    const summary = await this.toPublicSummary(record.id, record, {
+      relatedRows: related,
+      includeRelatedStatus: true,
+      publishedRelatedOnly: false,
+    });
     const images = await this.blogRepository.listImages(record.id);
     return {
       ...summary,
@@ -202,6 +286,11 @@ export class BlogService {
       }
     }
 
+    if (input.relatedBlogIds !== undefined) {
+      const relatedIds = await this.validateRelatedBlogIds(blogId, input.relatedBlogIds);
+      await this.blogRelatedRepository.replaceForBlog(blogId, relatedIds);
+    }
+
     const created = await this.blogRepository.findById(blogId);
     if (!created) {
       throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to load created blog');
@@ -248,7 +337,8 @@ export class BlogService {
         patch.scheduledPublishAt = null;
       }
     } else if (input.scheduledPublishAt !== undefined) {
-       patch.scheduledPublishAt = input.scheduledPublishAt;
+      patch.scheduledPublishAt = input.scheduledPublishAt;
+      patch.schedulerStatus = 'pending';
     }
 
     if (input.heading !== undefined && input.heading.trim() !== existing.heading) {
@@ -296,6 +386,11 @@ export class BlogService {
       await this.blogRepository.replaceImageUrls(id, urls);
     }
 
+    if (input.relatedBlogIds !== undefined) {
+      const relatedIds = await this.validateRelatedBlogIds(id, input.relatedBlogIds);
+      await this.blogRelatedRepository.replaceForBlog(id, relatedIds);
+    }
+
     const updated = await this.blogRepository.findById(id);
     if (!updated) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
@@ -309,6 +404,7 @@ export class BlogService {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
     }
     const gallery = await this.blogRepository.listImageUrls(id);
+    await this.blogRelatedRepository.removeAllForBlog(id);
     await this.blogRepository.softDelete(id);
     await Promise.all([
       deleteBlogImageByUrl(existing.featuredImageUrl),
@@ -325,12 +421,16 @@ export class BlogService {
     return this.toAdminDetail(blog);
   }
 
-  async listAdmin(pagination: PaginationParams) {
+  async listAdmin(pagination: PaginationParams, filters: AdminBlogListFilters = {}) {
     const [items, total] = await Promise.all([
-      this.blogRepository.listAdmin(pagination),
-      this.blogRepository.countAdmin(),
+      this.blogRepository.listAdmin(pagination, filters),
+      this.blogRepository.countAdmin(filters),
     ]);
-    const blogs = await Promise.all(items.map((row) => this.toAdminDetail(row)));
+    const blogIds = items.map((row) => row.id);
+    const relatedByBlog = await this.blogRelatedRepository.listByBlogIds(blogIds);
+    const blogs = await Promise.all(
+      items.map((row) => this.toAdminDetail(row, relatedByBlog.get(row.id))),
+    );
     return {
       blogs,
       pagination: buildPaginationMeta(total, pagination.page, pagination.limit),
@@ -582,7 +682,13 @@ export class BlogService {
       this.blogRepository.countPublic(filters, category?.id, tagId, authorId),
     ]);
 
-    const blogs = await Promise.all(items.map((row) => this.toPublicSummary(row.id, row)));
+    const blogIds = items.map((row) => row.id);
+    const relatedByBlog = await this.blogRelatedRepository.listPublishedByBlogIds(blogIds);
+    const blogs = await Promise.all(
+      items.map((row) =>
+        this.toPublicSummary(row.id, row, { relatedRows: relatedByBlog.get(row.id) }),
+      ),
+    );
     return {
       blogs,
       pagination: buildPaginationMeta(total, pagination.page, pagination.limit),
@@ -595,7 +701,8 @@ export class BlogService {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
     }
     await this.blogRepository.incrementViewCount(blog.id);
-    return this.toPublicDetail(blog);
+    const related = await this.blogRelatedRepository.listPublishedByBlogId(blog.id);
+    return this.toPublicDetail(blog, related);
   }
 
   async getShareLinks(slug: string): Promise<BlogShareLinks> {
