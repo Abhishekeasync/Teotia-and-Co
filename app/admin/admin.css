@@ -27,7 +27,7 @@
   min-height: 100dvh;
   background: var(--admin-bg);
   color: var(--admin-text);
-  font-family: wf_3f0d4ffb6bdc4c1cb6dc005c9, helveticaneuew01-65medi, system-ui, sans-serif;
+  font-family: "wf_3f0d4ffb6bdc4c1cb6dc005c9", "helveticaneuew01-65medi", system-ui, sans-serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
   -webkit-font-smoothing: antialiased;
 }
@@ -1870,7 +1870,7 @@
   --admin-radius-sm: 6px;
   --admin-shadow-lg: 0 20px 48px rgba(8, 8, 94, 0.18);
   --admin-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: wf_3f0d4ffb6bdc4c1cb6dc005c9, helveticaneuew01-65medi, system-ui, sans-serif;
+  font-family: "wf_3f0d4ffb6bdc4c1cb6dc005c9", "helveticaneuew01-65medi", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -2356,7 +2356,7 @@
   padding: 0;
   margin: -1px;
   overflow: hidden;
-  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }

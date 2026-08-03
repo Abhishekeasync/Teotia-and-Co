@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { cache } from 'react';
 import { publicApi } from '@/lib/api/client';
 import { ApiAuthorDetail, ApiBlogListResponse } from '@/lib/api/types';
 import { BlogCard } from '@/components/blog/BlogCard';
@@ -13,7 +14,7 @@ type AuthorPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-async function getAuthor(slug: string) {
+const getAuthor = cache(async (slug: string) => {
   try {
     const res = await publicApi.authors.getBySlug(slug);
     const data = res as unknown as { data: { author: ApiAuthorDetail } };
@@ -22,7 +23,7 @@ async function getAuthor(slug: string) {
     console.error('Failed to fetch author:', err);
     return null;
   }
-}
+});
 
 async function getAuthorBlogs(authorSlug: string) {
   try {

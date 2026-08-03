@@ -42,8 +42,8 @@ export class AuthorService {
     const row: CreateAuthorRow = {
       name: input.name.trim(),
       slug,
-      designation: input.designation?.trim(),
-      bio: input.bio?.trim(),
+      designation: input.designation?.trim() || null,
+      bio: input.bio?.trim() || null,
       facebookUrl: input.facebookUrl?.trim(),
       twitterUrl: input.twitterUrl?.trim(),
       linkedinUrl: input.linkedinUrl?.trim(),

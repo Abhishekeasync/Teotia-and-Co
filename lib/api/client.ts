@@ -3,7 +3,7 @@
  * Handles all HTTP requests to the backend with proper error handling
  */
 
-import { ApiError } from './types';
+import { ApiAuthorListResponse, ApiError, ApiSuccess } from './types';
 
 // Determine if we're on the server or client
 const isServer = typeof window === 'undefined';
@@ -310,7 +310,9 @@ export const adminApi = {
       const query = new URLSearchParams();
       if (params?.page) query.set('page', params.page.toString());
       if (params?.limit) query.set('limit', params.limit.toString());
-      return fetchApi(`/admin/authors?${query.toString()}`, { requireAuth: true });
+      return fetchApi<ApiSuccess<ApiAuthorListResponse>>(`/admin/authors?${query.toString()}`, {
+        requireAuth: true,
+      });
     },
 
     search: (params?: { query?: string; limit?: number }) => {

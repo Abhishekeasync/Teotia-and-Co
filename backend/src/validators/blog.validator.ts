@@ -63,7 +63,7 @@ const imageUrlsSchema = z.preprocess(
 
 const authorIdsSchema = z.preprocess(
   numberArrayPreprocess,
-  z.array(z.number().int().positive()).min(1).optional(),
+  z.array(z.number().int().positive()).optional(),
 );
 
 export const createBlogBodySchema = z.object({
