@@ -2,15 +2,22 @@ import type { BlogShareLinksData } from '@/components/blog/BlogPostShare';
 
 const DEFAULT_SITE_URL = 'http://localhost:3000';
 
+function resolveSiteUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return DEFAULT_SITE_URL;
+}
+
 /** Build share URLs when the API is unavailable (SSR fallback). */
 export function buildFallbackShareLinks(
   slug: string,
   heading: string
 ): BlogShareLinksData {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL).replace(
-    /\/+$/,
-    ''
-  );
+  const base = resolveSiteUrl();
   const pageUrl = `${base}/blog/${slug}`;
   const encodedUrl = encodeURIComponent(pageUrl);
   const encodedText = encodeURIComponent(`${heading} — ${pageUrl}`);

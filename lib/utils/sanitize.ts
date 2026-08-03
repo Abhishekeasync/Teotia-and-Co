@@ -6,6 +6,8 @@
  * overrides because jsdom@28+ breaks on Vercel's CommonJS serverless runtime.
  */
 
+import DOMPurify from 'isomorphic-dompurify';
+
 const SANITIZE_OPTIONS = {
   ALLOWED_TAGS: [
     'p',
@@ -60,22 +62,13 @@ const SANITIZE_OPTIONS = {
   ],
   ALLOWED_URI_REGEXP:
     /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-} as const;
+} ;
 
 function stripDangerousMarkup(html: string): string {
   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/\son\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
     .replace(/javascript:/gi, '');
-}
-
-function sanitizeWithDomPurify(dirty: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const DOMPurify = require('isomorphic-dompurify') as {
-    sanitize: (value: string, config?: typeof SANITIZE_OPTIONS) => string;
-  };
-
-  return DOMPurify.sanitize(dirty, SANITIZE_OPTIONS);
 }
 
 /**
@@ -87,7 +80,7 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
   if (!input) return '';
 
   try {
-    return sanitizeWithDomPurify(input);
+    return DOMPurify.sanitize(input, SANITIZE_OPTIONS);
   } catch (error) {
     console.error('DOMPurify sanitization failed, using fallback strip:', error);
     return stripDangerousMarkup(input);
@@ -99,7 +92,10 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
  */
 export function stripHtml(html: string): string {
   try {
-    return sanitizeWithDomPurify(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    return DOMPurify.sanitize(html, { ALLOWED_TAGS: [] })
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   } catch {
     return stripDangerousMarkup(html).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
   }
