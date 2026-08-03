@@ -1,5 +1,7 @@
 export type BlogStatus = 'draft' | 'published';
 
+import { AuthorSummary } from './author.interface';
+
 export type BlogCategoryRef = {
   id: number;
   name: string;
@@ -22,6 +24,7 @@ export type BlogRecord = {
   publishedAt: Date | null;
   categoryId: number;
   authorName: string;
+  authors?: AuthorSummary[];
   createdByAdminId: number | null;
   viewCount: number;
   createdAt: Date;
@@ -35,6 +38,7 @@ export type PublicBlogSummary = {
   shortDescription: string;
   featuredImageUrl: string | null;
   authorName: string;
+  authors?: AuthorSummary[];
   publishedAt: string | null;
   category: BlogCategoryRef;
   tags: string[];
@@ -81,5 +85,6 @@ export type PublicBlogListFilters = {
   search?: string;
   categorySlug?: string;
   tagName?: string;
+  authorSlug?: string;
   sort: PublicBlogSort;
 };

@@ -2,13 +2,15 @@ import multer from 'multer';
 import { NextFunction, Request, Response } from 'express';
 import { MAX_BLOG_IMAGES, UPLOAD_MAX_BYTES } from '../constants';
 
-const memoryUpload = multer({
+export const uploadImageMiddleware = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: UPLOAD_MAX_BYTES,
     files: MAX_BLOG_IMAGES,
   },
 });
+
+const memoryUpload = uploadImageMiddleware;
 
 /**
  * Standalone multi-upload — up to 5 files.
@@ -56,7 +58,7 @@ export function normalizeBlogFormBody(req: Request, _res: Response, next: NextFu
     }
   }
 
-  for (const key of ['tagNames', 'imageUrls'] as const) {
+  for (const key of ['tagNames', 'imageUrls', 'authorIds'] as const) {
     const value = body[key];
     if (typeof value !== 'string') {
       continue;

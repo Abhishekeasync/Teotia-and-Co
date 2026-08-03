@@ -1,10 +1,21 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { toast } from '@/lib/toast';
+import {
+  applyBlogDraft,
+  blogSnapshotsEqual,
+  clearBlogDraft,
+  cloneBlogSnapshot,
+  readBlogDraft,
+  writeBlogDraft,
+  type BlogDraftSnapshot,
+} from '@/lib/admin/blogDraft';
+import { useAdminNavigationGuard, useRegisterNavigationGuard } from '@/lib/hooks/AdminNavigationGuard';
 import { BlogGalleryUpload, GalleryImage } from '@/components/admin/BlogGalleryUpload';
 import { BlogPreview } from '@/components/admin/BlogPreview';
+import { AuthorPicker, AuthorPickerAuthor } from '@/components/admin/AuthorPicker';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { adminApi, publicApi } from '@/lib/api/client';
 import { normalizeApiBlog } from '@/lib/api/normalize';
@@ -20,8 +31,12 @@ type BlogFormProps = {
 
 export function BlogForm({ blogId, initial }: BlogFormProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { navigateWithoutGuard } = useAdminNavigationGuard();
   const { admin } = useAuth();
   const isEdit = Boolean(blogId);
+  const [draftReady, setDraftReady] = useState(false);
+  const baselineRef = useRef<BlogDraftSnapshot | null>(null);
 
   const [heading, setHeading] = useState(initial?.heading ?? '');
   const [shortDescription, setShortDescription] = useState(
@@ -42,6 +57,11 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     initial?.metaDescription ?? ''
   );
   const [canonicalUrl, setCanonicalUrl] = useState(initial?.canonicalUrl ?? '');
+  const [authorIds, setAuthorIds] = useState<number[]>(
+    initial?.authors?.map(a => a.id) ?? []
+  );
+  const [availableAuthors, setAvailableAuthors] = useState<AuthorPickerAuthor[]>([]);
+  const [authorsLoading, setAuthorsLoading] = useState(false);
   const [featuredFile, setFeaturedFile] = useState<File | null>(null);
   const [ogFile, setOgFile] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(
@@ -69,48 +89,235 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     return initial?.featuredImageUrl ?? null;
   }, [featuredFile, initial?.featuredImageUrl]);
 
+  const buildDraftSnapshot = useCallback((): BlogDraftSnapshot => ({
+    heading,
+    shortDescription,
+    body,
+    categoryId,
+    tagNames,
+    authorName,
+    metaTitle,
+    metaDescription,
+    canonicalUrl,
+    authorIds,
+    galleryImages,
+    featuredFile,
+    ogFile,
+  }), [
+    heading,
+    shortDescription,
+    body,
+    categoryId,
+    tagNames,
+    authorName,
+    metaTitle,
+    metaDescription,
+    canonicalUrl,
+    authorIds,
+    galleryImages,
+    featuredFile,
+    ogFile,
+  ]);
+
+  const flushDraft = useCallback(() => {
+    if (!pathname) return Promise.resolve();
+    return writeBlogDraft(blogId, pathname, buildDraftSnapshot());
+  }, [blogId, pathname, buildDraftSnapshot]);
+
+  const snapshotRef = useRef(buildDraftSnapshot);
+  snapshotRef.current = buildDraftSnapshot;
+
   useEffect(() => {
-    if (admin?.name && !initial?.authorName) {
+    let cancelled = false;
+
+    async function restoreDraft() {
+      const draft = readBlogDraft(blogId);
+      if (draft && draft.path === pathname) {
+        const applied = await applyBlogDraft(draft);
+        if (cancelled) return;
+        setHeading(applied.fields.heading);
+        setShortDescription(applied.fields.shortDescription);
+        setBody(applied.fields.body);
+        setCategoryId(applied.fields.categoryId);
+        setTagNames(applied.fields.tagNames);
+        setAuthorName(applied.fields.authorName);
+        setMetaTitle(applied.fields.metaTitle);
+        setMetaDescription(applied.fields.metaDescription);
+        setCanonicalUrl(applied.fields.canonicalUrl);
+        setAuthorIds(applied.fields.authorIds);
+        setGalleryImages(applied.fields.galleryImages);
+        if (applied.featuredFile) setFeaturedFile(applied.featuredFile);
+        if (applied.ogFile) setOgFile(applied.ogFile);
+        toast.success('Draft restored');
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const newAuthorId = params.get('newAuthorId');
+      if (newAuthorId) {
+        const id = Number(newAuthorId);
+        if (!Number.isNaN(id)) {
+          setAuthorIds((prev) =>
+            prev.includes(id) ? prev : [...prev, id]
+          );
+        }
+        params.delete('newAuthorId');
+        const query = params.toString();
+        const cleanPath = query
+          ? `${window.location.pathname}?${query}`
+          : window.location.pathname;
+        window.history.replaceState(null, '', cleanPath);
+      }
+
+      if (!cancelled) setDraftReady(true);
+    }
+
+    restoreDraft();
+    return () => {
+      cancelled = true;
+    };
+  }, [blogId, pathname]);
+
+  useEffect(() => {
+    if (!draftReady || !pathname) return;
+    const timer = window.setTimeout(() => {
+      writeBlogDraft(blogId, pathname, buildDraftSnapshot());
+    }, 500);
+    return () => window.clearTimeout(timer);
+  }, [draftReady, blogId, pathname, buildDraftSnapshot]);
+
+  useEffect(() => {
+    if (!draftReady || initial?.authorName) return;
+    const draft = readBlogDraft(blogId);
+    if (draft?.path === pathname) return;
+    if (admin?.name && !authorName.trim()) {
       setAuthorName(admin.name);
     }
-  }, [admin, initial?.authorName]);
+  }, [draftReady, admin, initial?.authorName, blogId, pathname, authorName]);
+
+  useEffect(() => {
+    if (!draftReady || baselineRef.current) return;
+
+    const timer = window.setTimeout(() => {
+      if (!baselineRef.current) {
+        baselineRef.current = cloneBlogSnapshot(snapshotRef.current());
+      }
+    }, 200);
+
+    return () => window.clearTimeout(timer);
+  }, [draftReady]);
+
+  const applySnapshot = useCallback((snapshot: BlogDraftSnapshot) => {
+    setHeading(snapshot.heading);
+    setShortDescription(snapshot.shortDescription);
+    setBody(snapshot.body);
+    setCategoryId(snapshot.categoryId);
+    setTagNames(snapshot.tagNames);
+    setAuthorName(snapshot.authorName);
+    setMetaTitle(snapshot.metaTitle);
+    setMetaDescription(snapshot.metaDescription);
+    setCanonicalUrl(snapshot.canonicalUrl);
+    setAuthorIds([...snapshot.authorIds]);
+    setGalleryImages(snapshot.galleryImages.map((img) => ({ ...img })));
+    setFeaturedFile(snapshot.featuredFile ?? null);
+    setOgFile(snapshot.ogFile ?? null);
+  }, []);
+
+  const isDirty = useCallback(() => {
+    if (!draftReady) return false;
+    const current = buildDraftSnapshot();
+    if (!baselineRef.current) {
+      return Boolean(
+        current.heading.trim() ||
+          current.shortDescription.trim() ||
+          current.body.trim() ||
+          current.tagNames.trim() ||
+          current.metaTitle.trim() ||
+          current.metaDescription.trim() ||
+          current.canonicalUrl.trim() ||
+          current.authorIds.length > 0 ||
+          current.galleryImages.length > 0 ||
+          current.featuredFile ||
+          current.ogFile
+      );
+    }
+    return !blogSnapshotsEqual(current, baselineRef.current);
+  }, [draftReady, buildDraftSnapshot]);
+
+  const resetToBaseline = useCallback(() => {
+    if (!baselineRef.current) return;
+    applySnapshot(baselineRef.current);
+    clearBlogDraft(blogId);
+    if (pathname) {
+      writeBlogDraft(blogId, pathname, baselineRef.current);
+    }
+    toast.success('Changes reset');
+  }, [applySnapshot, blogId, pathname]);
+
+  const discardChanges = useCallback(() => {
+    clearBlogDraft(blogId);
+    baselineRef.current = cloneBlogSnapshot(snapshotRef.current());
+  }, [blogId]);
+
+  useRegisterNavigationGuard({
+    enabled: draftReady,
+    isDirty,
+    reset: resetToBaseline,
+    discard: discardChanges,
+  });
 
   useEffect(() => {
     async function loadCategories() {
-      const map = new Map<number, string>();
-
-      if (initial?.categoryId && initial.categoryName) {
-        map.set(initial.categoryId, initial.categoryName);
-      }
-
       try {
-        const res = await publicApi.blogs.list({ limit: 100 });
-        const data = res as { data: { blogs: unknown[] } };
-        const blogs = (data.data?.blogs ?? []).map((blog) => normalizeApiBlog(blog as Parameters<typeof normalizeApiBlog>[0]));
-        for (const blog of blogs) {
-          if (blog.categoryId && blog.categoryName) {
-            map.set(blog.categoryId, blog.categoryName);
-          }
+        const res = await publicApi.categories.list();
+        const data = res as { data: { categories: CategoryOption[] } };
+        const loaded = data.data?.categories ?? [];
+
+        if (loaded.length > 0) {
+          setCategories(loaded);
+          setCategoryId((current) => current || String(loaded[0].id));
+          return;
         }
       } catch {
-        // Categories fallback below
+        // Fallback below
       }
 
-      if (map.size === 0) {
-        map.set(1, 'General');
-      }
-
-      setCategories(
-        Array.from(map.entries()).map(([id, name]) => ({ id, name }))
-      );
-
-      if (!categoryId && map.size > 0) {
-        setCategoryId(String(Array.from(map.keys())[0]));
+      if (initial?.categoryId && initial.categoryName) {
+        setCategories([{ id: initial.categoryId, name: initial.categoryName }]);
+        setCategoryId((current) => current || String(initial.categoryId));
       }
     }
 
     loadCategories();
   }, [initial]);
+
+  const loadAuthors = async () => {
+    setAuthorsLoading(true);
+    try {
+      const res = await adminApi.authors.list({ limit: 100 });
+      const data = res as unknown as {
+        data: { authors: AuthorPickerAuthor[] };
+      };
+      setAvailableAuthors(data.data.authors);
+    } catch {
+      // Keep existing list on refresh failure
+    } finally {
+      setAuthorsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAuthors();
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadAuthors();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, []);
 
   const buildFormData = () => {
     const formData = new FormData();
@@ -119,6 +326,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     formData.append('body', body);
     formData.append('categoryId', categoryId);
     formData.append('authorName', authorName.trim() || 'TEOTIA & CO.');
+
+    if (authorIds.length > 0) {
+      formData.append('authorIds', JSON.stringify(authorIds));
+    }
 
     if (parsedTags.length > 0) {
       formData.append('tagNames', JSON.stringify(parsedTags));
@@ -166,6 +377,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       toast.error('Please select a category');
       return;
     }
+    if (categories.length === 0) {
+      toast.error('No categories available. Run backend migrations and restart the API.');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -187,6 +402,7 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         toast.success('Blog published');
       }
 
+      clearBlogDraft(blogId);
       router.push('/admin/blogs');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save blog');
@@ -293,8 +509,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
             ))}
           </select>
           <p className="admin-field-hint">
-            Categories are loaded from existing blog posts. Ensure at least one
-            category exists in the database.
+            Categories are loaded from the blog category list. Run database
+            migrations if this dropdown is empty.
           </p>
         </div>
 
@@ -315,11 +531,22 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         </div>
 
         <div className="admin-field">
-          <label htmlFor="authorName">Author name</label>
+          <label htmlFor="authorName">Fallback Author name (legacy)</label>
           <input
             id="authorName"
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
+          />
+        </div>
+
+        <div className="admin-field">
+          <AuthorPicker
+            authors={availableAuthors}
+            selectedIds={authorIds}
+            onChange={setAuthorIds}
+            onRefresh={loadAuthors}
+            onBeforeNavigate={flushDraft}
+            loading={authorsLoading}
           />
         </div>
 
@@ -410,7 +637,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         <button
           type="button"
           className="admin-btn admin-btn-secondary"
-          onClick={() => router.push('/admin/blogs')}
+          onClick={() => {
+            clearBlogDraft(blogId);
+            navigateWithoutGuard('/admin/blogs');
+          }}
         >
           Cancel
         </button>

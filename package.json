@@ -24,6 +24,7 @@
     "next": "^16",
     "react": "^19",
     "react-dom": "^19",
+    "react-easy-crop": "^6.2.3",
     "react-toastify": "^11.1.0"
   },
   "devDependencies": {

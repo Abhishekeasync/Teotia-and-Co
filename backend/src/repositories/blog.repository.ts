@@ -283,6 +283,7 @@ export class BlogRepository {
     filters: PublicBlogListFilters,
     categoryId?: number,
     tagId?: number,
+    authorId?: number,
   ): { where: string; params: unknown[] } {
     const clauses = [`b.status = 'published'`, `b.deleted_at IS NULL`];
     const params: unknown[] = [];
@@ -301,6 +302,12 @@ export class BlogRepository {
       );
       params.push(tagId);
     }
+    if (authorId !== undefined) {
+      clauses.push(
+        `EXISTS (SELECT 1 FROM blog_authors ba WHERE ba.blog_id = b.id AND ba.author_id = ?)`,
+      );
+      params.push(authorId);
+    }
 
     return { where: clauses.join(' AND '), params };
   }
@@ -309,8 +316,9 @@ export class BlogRepository {
     filters: PublicBlogListFilters,
     categoryId?: number,
     tagId?: number,
+    authorId?: number,
   ): Promise<number> {
-    const { where, params } = this.buildPublicWhere(filters, categoryId, tagId);
+    const { where, params } = this.buildPublicWhere(filters, categoryId, tagId, authorId);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
@@ -328,8 +336,9 @@ export class BlogRepository {
     pagination: PaginationParams,
     categoryId?: number,
     tagId?: number,
+    authorId?: number,
   ): Promise<BlogRecord[]> {
-    const { where, params } = this.buildPublicWhere(filters, categoryId, tagId);
+    const { where, params } = this.buildPublicWhere(filters, categoryId, tagId, authorId);
     const order = sortClause(filters.sort);
     const connection = await acquireConnection();
     try {

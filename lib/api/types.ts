@@ -27,6 +27,29 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
+// Author Types
+export interface ApiAuthor {
+  id: number;
+  name: string;
+  slug: string;
+  designation: string | null;
+  profileImageUrl: string | null;
+}
+
+export interface ApiAuthorDetail extends ApiAuthor {
+  bio: string | null;
+  facebookUrl: string | null;
+  twitterUrl: string | null;
+  linkedinUrl: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiAuthorListResponse {
+  authors: ApiAuthorDetail[];
+  pagination: PaginationMeta;
+}
+
 // Blog Types
 export interface ApiBlog {
   id: number;
@@ -46,7 +69,8 @@ export interface ApiBlog {
   categorySlug: string;
   /** Tag names (normalized from API string[] or object[]). */
   tags: string[];
-  authorName: string;
+  authorName: string; // Deprecated, use authors instead
+  authors?: ApiAuthor[];
   createdAt: string;
   updatedAt: string;
   viewCount?: number; // Only in admin responses

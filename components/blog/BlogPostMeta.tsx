@@ -1,8 +1,10 @@
-import Image from 'next/image';
+import { ApiAuthor } from '@/lib/api/types';
+import { BlogAuthorByline } from './BlogAuthorByline';
 
 type BlogPostMetaProps = {
   author: string;
   authorAvatar: string;
+  authors?: ApiAuthor[];
   date: string;
   readTime: string;
   variant?: 'featured' | 'regular' | 'timestamps';
@@ -11,6 +13,7 @@ type BlogPostMetaProps = {
 export function BlogPostMeta({
   author,
   authorAvatar,
+  authors,
   date,
   readTime,
   variant = 'regular',
@@ -30,28 +33,20 @@ export function BlogPostMeta({
   const avatarSize = variant === 'featured' ? 44 : 36;
 
   return (
-    <div className="flex items-center gap-3">
-      <Image
-        src={authorAvatar}
-        alt={author}
-        width={avatarSize}
-        height={avatarSize}
-        className="rounded-full object-cover flex-shrink-0 ring-2 ring-white"
-        style={{ width: avatarSize, height: avatarSize }}
-        loading="lazy"
+    <div className="flex flex-col gap-1 min-w-0">
+      <BlogAuthorByline
+        author={author}
+        authorAvatar={authorAvatar}
+        authors={authors}
+        avatarSize={avatarSize}
       />
-      <div className="flex flex-col min-w-0">
-        <span className="font-semibold text-gray-900 truncate text-sm">
-          {author}
+      <span className="text-gray-500 text-xs tabular-nums">
+        <time dateTime={date}>{date}</time>
+        <span className="mx-1" aria-hidden="true">
+          ·
         </span>
-        <span className="text-gray-500 text-xs">
-          <time dateTime={date}>{date}</time>
-          <span className="mx-1" aria-hidden="true">
-            ·
-          </span>
-          {readTime}
-        </span>
-      </div>
+        {readTime}
+      </span>
     </div>
   );
 }

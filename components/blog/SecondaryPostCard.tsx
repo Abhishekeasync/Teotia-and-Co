@@ -51,6 +51,7 @@ export function SecondaryPostCard({ post, className = '' }: SecondaryPostCardPro
           <BlogPostMeta
             author={post.author}
             authorAvatar={post.authorAvatar}
+            authors={post.authors}
             date={post.date}
             readTime={post.readTime}
             variant="timestamps"

@@ -106,6 +106,7 @@ export const publicApi = {
       search?: string;
       category?: string;
       tag?: string;
+      author?: string;
       sort?: 'latest' | 'oldest' | 'popular';
     }) => {
       const query = new URLSearchParams();
@@ -114,6 +115,7 @@ export const publicApi = {
       if (params?.search) query.set('search', params.search);
       if (params?.category) query.set('category', params.category);
       if (params?.tag) query.set('tag', params.tag);
+      if (params?.author) query.set('author', params.author);
       if (params?.sort) query.set('sort', params.sort);
 
       return fetchApi(`/blogs?${query.toString()}`);
@@ -122,6 +124,16 @@ export const publicApi = {
     getBySlug: (slug: string) => fetchApi(`/blogs/${slug}`),
 
     getShareLinks: (slug: string) => fetchApi(`/blogs/${slug}/share`),
+  },
+
+  // Author APIs
+  authors: {
+    getBySlug: (slug: string) => fetchApi(`/authors/${slug}`),
+  },
+
+  // Category APIs
+  categories: {
+    list: () => fetchApi('/categories'),
   },
 
   // Comment APIs
@@ -287,6 +299,51 @@ export const adminApi = {
 
     deleteGalleryImage: (blogId: number, imageId: number) =>
       fetchApi(`/admin/blogs/blog/${blogId}/images/${imageId}`, {
+        method: 'DELETE',
+        requireAuth: true,
+      }),
+  },
+
+  // Author APIs
+  authors: {
+    list: (params?: { page?: number; limit?: number }) => {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.limit) query.set('limit', params.limit.toString());
+      return fetchApi(`/admin/authors?${query.toString()}`, { requireAuth: true });
+    },
+
+    search: (params?: { query?: string; limit?: number }) => {
+      const query = new URLSearchParams();
+      if (params?.query) query.set('query', params.query);
+      if (params?.limit) query.set('limit', params.limit.toString());
+
+      return fetchApi(`/admin/authors/search?${query.toString()}`, {
+        requireAuth: true,
+      });
+    },
+
+    getById: (id: number) =>
+      fetchApi(`/admin/authors/${id}`, { requireAuth: true }),
+
+    create: (data: FormData) =>
+      fetchApi('/admin/authors', {
+        method: 'POST',
+        body: data,
+        requireAuth: true,
+        headers: {},
+      }),
+
+    update: (id: number, data: FormData) =>
+      fetchApi(`/admin/authors/${id}`, {
+        method: 'PATCH',
+        body: data,
+        requireAuth: true,
+        headers: {},
+      }),
+
+    delete: (id: number) =>
+      fetchApi(`/admin/authors/${id}`, {
         method: 'DELETE',
         requireAuth: true,
       }),
