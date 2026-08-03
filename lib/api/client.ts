@@ -45,6 +45,8 @@ export class ApiClientError extends Error {
 
 interface RequestOptions extends RequestInit {
   requireAuth?: boolean;
+  /** Seconds to cache public GET responses via Next.js Data Cache. */
+  revalidate?: number | false;
 }
 
 /**
@@ -55,7 +57,7 @@ async function fetchApi<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { requireAuth = false, ...fetchOptions } = options;
+  const { requireAuth = false, revalidate, ...fetchOptions } = options;
 
   const url = `${getApiUrl()}${endpoint}`;
   const isFormData = fetchOptions.body instanceof FormData;
@@ -72,6 +74,7 @@ async function fetchApi<T>(
       ...fetchOptions,
       headers,
       credentials,
+      ...(revalidate !== undefined ? { next: { revalidate } } : {}),
     });
 
     const data = await response.json();
@@ -127,10 +130,10 @@ export const publicApi = {
       if (params?.author) query.set('author', params.author);
       if (params?.sort) query.set('sort', params.sort);
 
-      return fetchApi(`/blogs?${query.toString()}`);
+      return fetchApi(`/blogs?${query.toString()}`, { revalidate: 120 });
     },
 
-    getBySlug: (slug: string) => fetchApi(`/blogs/${slug}`),
+    getBySlug: (slug: string) => fetchApi(`/blogs/${slug}`, { revalidate: 300 }),
 
     getShareLinks: (slug: string) => fetchApi(`/blogs/${slug}/share`),
   },
