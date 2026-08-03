@@ -8,20 +8,29 @@ import { ApiAuthorListResponse, ApiError, ApiSuccess } from './types';
 // Determine if we're on the server or client
 const isServer = typeof window === 'undefined';
 
-// For server-side requests, use the full backend URL with /api/v1
-// For client-side requests, use just /api/v1 (handled by Next.js rewrites)
-const getApiUrl = () => {
-  if (isServer) {
-    // Server-side: full URL with path
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
-    return `${backendUrl}/api/v1`;
-  } else {
-    // Client-side: relative path (Next.js rewrites handle it)
+/** Resolve API base URL at request time so Vercel runtime env vars are respected. */
+function getApiUrl(): string {
+  if (!isServer) {
     return '/api/v1';
   }
-};
 
-const API_BASE_URL = getApiUrl();
+  const backendUrl = process.env.BACKEND_URL?.replace(/\/+$/, '');
+  if (backendUrl) {
+    return `${backendUrl}/api/v1`;
+  }
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) {
+    return `https://${vercelUrl}/api/v1`;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '');
+  if (siteUrl) {
+    return `${siteUrl}/api/v1`;
+  }
+
+  return 'http://127.0.0.1:5000/api/v1';
+}
 
 export class ApiClientError extends Error {
   constructor(
@@ -48,7 +57,7 @@ async function fetchApi<T>(
 ): Promise<T> {
   const { requireAuth = false, ...fetchOptions } = options;
 
-  const url = `${API_BASE_URL}${endpoint}`;
+  const url = `${getApiUrl()}${endpoint}`;
   const isFormData = fetchOptions.body instanceof FormData;
   const headers: HeadersInit = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),

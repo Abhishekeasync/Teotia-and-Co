@@ -2,11 +2,9 @@
 const nextConfig = {
   // Removed 'output: export' for dynamic Next.js with API integration
   
-  // Environment variables
-  env: {
-    BACKEND_URL: process.env.BACKEND_URL || 'http://127.0.0.1:5000',
-  },
-  
+  // Keep jsdom external so isomorphic-dompurify works on Vercel serverless.
+  serverExternalPackages: ['jsdom', 'isomorphic-dompurify'],
+
   images: {
     // Allow Next.js Image optimization
     unoptimized: false,

@@ -27,6 +27,9 @@
     "react-easy-crop": "^6.2.3",
     "react-toastify": "^11.1.0"
   },
+  "overrides": {
+    "jsdom": "25.0.1"
+  },
   "devDependencies": {
     "@types/node": "26.1.1",
     "@types/react": "19.2.17",
