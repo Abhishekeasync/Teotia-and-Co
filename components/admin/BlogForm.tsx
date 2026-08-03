@@ -29,6 +29,14 @@ type BlogFormProps = {
   initial?: ApiBlog | null;
 };
 
+/** Convert a UTC ISO string (or Date) to the format datetime-local expects: YYYY-MM-DDTHH:MM in local time. */
+function toLocalDatetimeString(iso: string | Date): string {
+  const d = typeof iso === 'string' ? new Date(iso) : iso;
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
 export function BlogForm({ blogId, initial }: BlogFormProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -59,6 +67,12 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
   const [canonicalUrl, setCanonicalUrl] = useState(initial?.canonicalUrl ?? '');
   const [authorIds, setAuthorIds] = useState<number[]>(
     initial?.authors?.map(a => a.id) ?? []
+  );
+  const [publishType, setPublishType] = useState<'draft' | 'publish_now' | 'scheduled'>(
+    initial?.publishType ?? 'draft'
+  );
+  const [scheduledPublishAt, setScheduledPublishAt] = useState(
+    initial?.scheduledPublishAt ? toLocalDatetimeString(initial.scheduledPublishAt) : ''
   );
   const [availableAuthors, setAvailableAuthors] = useState<AuthorPickerAuthor[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(false);
@@ -101,6 +115,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     canonicalUrl,
     authorIds,
     galleryImages,
+    publishType,
+    scheduledPublishAt,
     featuredFile,
     ogFile,
   }), [
@@ -115,6 +131,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     canonicalUrl,
     authorIds,
     galleryImages,
+    publishType,
+    scheduledPublishAt,
     featuredFile,
     ogFile,
   ]);
@@ -146,6 +164,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         setCanonicalUrl(applied.fields.canonicalUrl);
         setAuthorIds(applied.fields.authorIds);
         setGalleryImages(applied.fields.galleryImages);
+        setPublishType(applied.fields.publishType);
+        setScheduledPublishAt(applied.fields.scheduledPublishAt);
         if (applied.featuredFile) setFeaturedFile(applied.featuredFile);
         if (applied.ogFile) setOgFile(applied.ogFile);
         toast.success('Draft restored');
@@ -218,6 +238,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     setCanonicalUrl(snapshot.canonicalUrl);
     setAuthorIds([...snapshot.authorIds]);
     setGalleryImages(snapshot.galleryImages.map((img) => ({ ...img })));
+    setPublishType(snapshot.publishType);
+    setScheduledPublishAt(snapshot.scheduledPublishAt);
     setFeaturedFile(snapshot.featuredFile ?? null);
     setOgFile(snapshot.ogFile ?? null);
   }, []);
@@ -236,6 +258,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           current.canonicalUrl.trim() ||
           current.authorIds.length > 0 ||
           current.galleryImages.length > 0 ||
+          current.publishType !== 'draft' ||
+          current.scheduledPublishAt !== '' ||
           current.featuredFile ||
           current.ogFile
       );
@@ -316,6 +340,17 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+  const validateImageFile = (file: File | null, label: string): boolean => {
+    if (!file) return true;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+      toast.error(`${label}: Only JPEG, PNG, and WebP images are supported.`);
+      return false;
+    }
+    return true;
+  };
+
   const buildFormData = () => {
     const formData = new FormData();
     formData.append('heading', heading.trim());
@@ -342,6 +377,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       formData.append('metaDescription', metaDescription.trim());
     }
     if (canonicalUrl.trim()) formData.append('canonicalUrl', canonicalUrl.trim());
+    formData.append('publishType', publishType);
+    if (publishType === 'scheduled' && scheduledPublishAt) {
+      formData.append('scheduledPublishAt', new Date(scheduledPublishAt).toISOString());
+    }
     if (featuredFile) formData.append('featuredImage', featuredFile);
     if (ogFile) formData.append('ogImage', ogFile);
 
@@ -378,6 +417,14 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       toast.error('No categories available. Run backend migrations and restart the API.');
       return;
     }
+    
+    if (publishType === 'scheduled' && !scheduledPublishAt) {
+      toast.error('Please select a date and time for scheduled publishing');
+      return;
+    }
+
+    if (!validateImageFile(featuredFile, 'Featured image')) return;
+    if (!validateImageFile(ogFile, 'OG image')) return;
 
     setSaving(true);
     try {
@@ -548,11 +595,60 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         </div>
 
         <div className="admin-field">
+          <label>Publishing Options</label>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="draft" 
+                checked={publishType === 'draft'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Save as Draft
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="publish_now" 
+                checked={publishType === 'publish_now'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Publish Immediately
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="scheduled" 
+                checked={publishType === 'scheduled'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Schedule for Later
+            </label>
+          </div>
+
+          {publishType === 'scheduled' && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <label htmlFor="scheduledPublishAt">Publish Date & Time (Local)</label>
+              <input
+                id="scheduledPublishAt"
+                type="datetime-local"
+                value={scheduledPublishAt}
+                onChange={(e) => setScheduledPublishAt(e.target.value)}
+                required={publishType === 'scheduled'}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="admin-field">
           <label htmlFor="featuredImage">Featured image</label>
           <input
             id="featuredImage"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             onChange={(e) => setFeaturedFile(e.target.files?.[0] ?? null)}
           />
           {featuredPreviewUrl && (
@@ -575,7 +671,7 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           <input
             id="ogImage"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             onChange={(e) => setOgFile(e.target.files?.[0] ?? null)}
           />
         </div>
@@ -627,9 +723,9 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           type="button"
           className="admin-btn admin-btn-primary"
           disabled={saving}
-          onClick={() => save(true)}
+          onClick={() => save(publishType === 'publish_now')}
         >
-          {saving ? 'Saving…' : isEdit ? 'Save & publish' : 'Save & publish'}
+          {saving ? 'Saving…' : (publishType === 'publish_now' ? 'Save & Publish' : (publishType === 'scheduled' ? 'Save & Schedule' : 'Save changes'))}
         </button>
         <button
           type="button"

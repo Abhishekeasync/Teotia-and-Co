@@ -63,6 +63,9 @@ export interface ApiBlog {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   status: 'draft' | 'published';
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: string | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt: string | null;
   categoryId: number;
   categoryName: string;

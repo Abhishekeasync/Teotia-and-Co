@@ -148,9 +148,15 @@ export default function AdminBlogsPage() {
                       </td>
                       <td>{blog.categoryName}</td>
                       <td>
-                        <span className={`admin-badge ${blog.status}`}>
-                          {blog.status}
-                        </span>
+                        {blog.publishType === 'scheduled' && blog.schedulerStatus === 'pending' ? (
+                          <span className="admin-badge warning" title={blog.scheduledPublishAt ? new Date(blog.scheduledPublishAt).toLocaleString() : ''}>
+                            Scheduled
+                          </span>
+                        ) : (
+                          <span className={`admin-badge ${blog.status}`}>
+                            {blog.status}
+                          </span>
+                        )}
                       </td>
                       <td style={{ fontVariantNumeric: 'tabular-nums' }}>
                         {blog.viewCount ?? 0}

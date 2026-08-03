@@ -21,6 +21,9 @@ type BlogRow = RowDataPacket & {
   canonical_url: string | null;
   og_image_url: string | null;
   status: BlogStatus;
+  publish_type: 'draft' | 'publish_now' | 'scheduled';
+  scheduled_publish_at: Date | null;
+  scheduler_status: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   published_at: Date | null;
   category_id: number;
   author_name: string;
@@ -34,7 +37,7 @@ type BlogRow = RowDataPacket & {
 const BLOG_SELECT = `
   id, heading, slug, short_description, body, featured_image_url,
   meta_title, meta_description, canonical_url, og_image_url,
-  status, published_at, category_id, author_name, created_by_admin_id,
+  status, publish_type, scheduled_publish_at, scheduler_status, published_at, category_id, author_name, created_by_admin_id,
   view_count, created_at, updated_at, deleted_at
 `;
 
@@ -51,6 +54,9 @@ function mapBlog(row: BlogRow): BlogRecord {
     canonicalUrl: row.canonical_url,
     ogImageUrl: row.og_image_url,
     status: row.status,
+    publishType: row.publish_type,
+    scheduledPublishAt: row.scheduled_publish_at,
+    schedulerStatus: row.scheduler_status,
     publishedAt: row.published_at,
     categoryId: row.category_id,
     authorName: row.author_name,
@@ -76,6 +82,9 @@ export type CreateBlogRow = {
   canonicalUrl?: string | null;
   ogImageUrl?: string | null;
   status?: BlogStatus;
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: Date | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt?: Date | null;
 };
 
@@ -84,6 +93,9 @@ export type UpdateBlogRow = Partial<
 > & {
   slug?: string;
   status?: BlogStatus;
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: Date | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
 };
 
 function sortClause(sort: PublicBlogSort): string {
@@ -141,8 +153,8 @@ export class BlogRepository {
         `INSERT INTO blogs (
           heading, slug, short_description, body, featured_image_url,
           meta_title, meta_description, canonical_url, og_image_url,
-          status, published_at, category_id, author_name, created_by_admin_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          status, publish_type, scheduled_publish_at, scheduler_status, published_at, category_id, author_name, created_by_admin_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           row.heading,
           row.slug,
@@ -154,6 +166,9 @@ export class BlogRepository {
           row.canonicalUrl ?? null,
           row.ogImageUrl ?? null,
           row.status ?? 'draft',
+          row.publishType ?? 'draft',
+          row.scheduledPublishAt ?? null,
+          row.schedulerStatus ?? null,
           row.publishedAt ?? null,
           row.categoryId,
           row.authorName,
@@ -185,6 +200,9 @@ export class BlogRepository {
     if (row.canonicalUrl !== undefined) assign('canonical_url', row.canonicalUrl);
     if (row.ogImageUrl !== undefined) assign('og_image_url', row.ogImageUrl);
     if (row.status !== undefined) assign('status', row.status);
+    if (row.publishType !== undefined) assign('publish_type', row.publishType);
+    if (row.scheduledPublishAt !== undefined) assign('scheduled_publish_at', row.scheduledPublishAt);
+    if (row.schedulerStatus !== undefined) assign('scheduler_status', row.schedulerStatus);
     if (row.publishedAt !== undefined) assign('published_at', row.publishedAt);
     if (row.categoryId !== undefined) assign('category_id', row.categoryId);
     if (row.authorName !== undefined) assign('author_name', row.authorName);

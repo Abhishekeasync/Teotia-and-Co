@@ -83,6 +83,11 @@ export const createBlogBodySchema = z.object({
   canonicalUrl: optionalUrl,
   ogImageUrl: optionalNullableUrl,
   imageUrls: imageUrlsSchema,
+  publishType: z.enum(['draft', 'publish_now', 'scheduled']).optional().default('draft'),
+  scheduledPublishAt: z.preprocess(
+    emptyToUndefined,
+    z.string().datetime().nullable().optional()
+  ),
 });
 
 export const updateBlogBodySchema = createBlogBodySchema.partial();

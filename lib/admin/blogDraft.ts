@@ -16,6 +16,8 @@ export type BlogDraftData = {
   canonicalUrl: string;
   authorIds: number[];
   galleryImages: GalleryImage[];
+  publishType: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt: string;
   featuredImageDataUrl?: string | null;
   ogImageDataUrl?: string | null;
   savedAt: number;
@@ -89,6 +91,8 @@ export async function writeBlogDraft(
     canonicalUrl: snapshot.canonicalUrl,
     authorIds: snapshot.authorIds,
     galleryImages: snapshot.galleryImages,
+    publishType: snapshot.publishType,
+    scheduledPublishAt: snapshot.scheduledPublishAt,
     featuredImageDataUrl,
     ogImageDataUrl,
     savedAt: Date.now(),
@@ -153,6 +157,8 @@ export async function applyBlogDraft(
       canonicalUrl: draft.canonicalUrl,
       authorIds: draft.authorIds,
       galleryImages: draft.galleryImages,
+      publishType: draft.publishType ?? 'draft',
+      scheduledPublishAt: draft.scheduledPublishAt ?? '',
     },
   };
 }
@@ -190,7 +196,9 @@ export function blogSnapshotsEqual(a: BlogDraftSnapshot, b: BlogDraftSnapshot): 
     a.authorName !== b.authorName ||
     a.metaTitle !== b.metaTitle ||
     a.metaDescription !== b.metaDescription ||
-    a.canonicalUrl !== b.canonicalUrl
+    a.canonicalUrl !== b.canonicalUrl ||
+    a.publishType !== b.publishType ||
+    a.scheduledPublishAt !== b.scheduledPublishAt
   ) {
     return false;
   }

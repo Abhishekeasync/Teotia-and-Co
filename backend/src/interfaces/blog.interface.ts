@@ -1,4 +1,6 @@
 export type BlogStatus = 'draft' | 'published';
+export type PublishType = 'draft' | 'publish_now' | 'scheduled';
+export type SchedulerStatus = 'pending' | 'published' | 'failed' | 'cancelled';
 
 import { AuthorSummary } from './author.interface';
 
@@ -21,6 +23,9 @@ export type BlogRecord = {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   status: BlogStatus;
+  publishType: PublishType;
+  scheduledPublishAt: Date | null;
+  schedulerStatus: SchedulerStatus | null;
   publishedAt: Date | null;
   categoryId: number;
   authorName: string;
@@ -63,6 +68,9 @@ export type PublicBlogDetail = PublicBlogSummary & {
 export type AdminBlogDetail = Omit<PublicBlogDetail, 'images'> & {
   id: number;
   status: BlogStatus;
+  publishType: PublishType;
+  scheduledPublishAt: string | null;
+  schedulerStatus: SchedulerStatus | null;
   categoryId: number;
   viewCount: number;
   createdAt: string;

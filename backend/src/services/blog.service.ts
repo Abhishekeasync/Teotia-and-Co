@@ -35,6 +35,8 @@ export type CreateBlogInput = {
   ogImageUrl?: string | null;
   /** Gallery image URLs (max MAX_BLOG_IMAGES). */
   imageUrls?: string[];
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: Date | null;
 };
 
 export type UpdateBlogInput = Partial<CreateBlogInput>;
@@ -132,6 +134,9 @@ export class BlogService {
       images,
       id: record.id,
       status: record.status,
+      publishType: record.publishType,
+      scheduledPublishAt: record.scheduledPublishAt ? record.scheduledPublishAt.toISOString() : null,
+      schedulerStatus: record.schedulerStatus,
       categoryId: record.categoryId,
       viewCount: record.viewCount,
       createdAt: record.createdAt.toISOString(),
@@ -175,7 +180,11 @@ export class BlogService {
       metaDescription: input.metaDescription ?? null,
       canonicalUrl: input.canonicalUrl ?? null,
       ogImageUrl: input.ogImageUrl ?? null,
-      status: 'draft',
+      status: input.publishType === 'publish_now' ? 'published' : 'draft',
+      publishType: input.publishType ?? 'draft',
+      scheduledPublishAt: input.scheduledPublishAt ?? null,
+      schedulerStatus: input.publishType === 'scheduled' ? 'pending' : null,
+      publishedAt: input.publishType === 'publish_now' ? new Date() : null,
     };
 
     const blogId = await this.blogRepository.create(row);
@@ -221,6 +230,26 @@ export class BlogService {
     if (input.metaDescription !== undefined) patch.metaDescription = input.metaDescription;
     if (input.canonicalUrl !== undefined) patch.canonicalUrl = input.canonicalUrl;
     if (input.ogImageUrl !== undefined) patch.ogImageUrl = input.ogImageUrl;
+
+    if (input.publishType !== undefined) {
+      patch.publishType = input.publishType;
+      if (input.publishType === 'publish_now') {
+        patch.status = 'published';
+        patch.publishedAt = new Date();
+        patch.schedulerStatus = null;
+        patch.scheduledPublishAt = null;
+      } else if (input.publishType === 'scheduled') {
+        patch.status = 'draft';
+        patch.schedulerStatus = 'pending';
+        patch.scheduledPublishAt = input.scheduledPublishAt ?? null;
+      } else {
+        patch.status = 'draft';
+        patch.schedulerStatus = null;
+        patch.scheduledPublishAt = null;
+      }
+    } else if (input.scheduledPublishAt !== undefined) {
+       patch.scheduledPublishAt = input.scheduledPublishAt;
+    }
 
     if (input.heading !== undefined && input.heading.trim() !== existing.heading) {
       const heading = input.heading.trim();

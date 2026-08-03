@@ -35,6 +35,9 @@ export type RawApiBlog = {
   canonicalUrl?: string | null;
   ogImageUrl?: string | null;
   status?: 'draft' | 'published';
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: string | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt?: string | null;
   category?: RawCategory;
   categoryId?: number;
@@ -124,6 +127,9 @@ export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
     canonicalUrl: raw.canonicalUrl ?? null,
     ogImageUrl: raw.ogImageUrl ?? null,
     status: raw.status ?? 'draft',
+    publishType: raw.publishType ?? 'draft',
+    scheduledPublishAt: raw.scheduledPublishAt ?? null,
+    schedulerStatus: raw.schedulerStatus ?? null,
     publishedAt: raw.publishedAt ?? null,
     categoryId: category?.id ?? raw.categoryId ?? 0,
     categoryName: category?.name ?? raw.categoryName ?? 'Uncategorized',
