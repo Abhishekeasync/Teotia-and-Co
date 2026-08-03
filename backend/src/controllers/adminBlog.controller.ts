@@ -60,6 +60,10 @@ async function applyUploadedImages(req: Request, body: CreateBlogInput | UpdateB
 export const createBlog = asyncHandler(async (req: Request, res: Response) => {
   const admin = req.admin!;
   const body = { ...(req.body as CreateBlogInput) };
+  // Zod validates scheduledPublishAt as string; service/repo need Date
+  if (typeof body.scheduledPublishAt === 'string') {
+    body.scheduledPublishAt = new Date(body.scheduledPublishAt);
+  }
   await applyUploadedImages(req, body);
   const blog = await blogService.createDraft(admin.id, admin.name, body);
   return ApiResponse.success(res, { blog }, 'Blog created', 201);
@@ -67,7 +71,11 @@ export const createBlog = asyncHandler(async (req: Request, res: Response) => {
 
 export const listAdminBlogs = asyncHandler(async (req: Request, res: Response) => {
   const pagination = parsePaginationQuery(req.query);
-  const result = await blogService.listAdmin(pagination);
+  const query = req.query as { search?: string; excludeId?: string };
+  const result = await blogService.listAdmin(pagination, {
+    search: query.search,
+    excludeId: query.excludeId ? Number(query.excludeId) : undefined,
+  });
   return ApiResponse.success(res, result, '');
 });
 
@@ -80,6 +88,10 @@ export const getAdminBlog = asyncHandler(async (req: Request, res: Response) => 
 export const updateBlog = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as { id: string };
   const body = { ...(req.body as UpdateBlogInput) };
+  // Zod validates scheduledPublishAt as string; service/repo need Date
+  if (typeof body.scheduledPublishAt === 'string') {
+    body.scheduledPublishAt = new Date(body.scheduledPublishAt);
+  }
   await applyUploadedImages(req, body);
   const blog = await blogService.updateBlog(Number(id), body);
   return ApiResponse.success(res, { blog }, 'Blog updated');

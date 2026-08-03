@@ -4,7 +4,7 @@
  */
 
 import { BlogPost } from '../blog-posts';
-import { ApiBlog } from './types';
+import { ApiBlog, ApiRelatedPost } from './types';
 import { normalizeTagNames } from './normalize';
 
 /**
@@ -71,4 +71,25 @@ export function mapApiBlogToPost(apiBlog: ApiBlog): BlogPost {
  */
 export function mapApiBlogsToPost(apiBlogs: ApiBlog[]): BlogPost[] {
   return apiBlogs.map(mapApiBlogToPost);
+}
+
+/** Map a related-post summary to the compact BlogPost card shape. */
+export function mapRelatedPostToBlogPost(related: ApiRelatedPost): BlogPost {
+  return {
+    slug: related.slug,
+    title: related.heading,
+    excerpt: related.shortDescription,
+    content: [related.shortDescription],
+    image: related.featuredImageUrl || '/assets/images/placeholder.jpg',
+    author: 'TEOTIA & CO.',
+    authorAvatar:
+      '/assets/images/static.wixstatic.com/d8ab7d3a-12ec-4da4-96ad-a9761e57c1f0_edited-4fa8dd2ff7.png',
+    date: formatDate(related.publishedAt),
+    readTime: calculateReadTime(related.shortDescription),
+    category: related.category.name,
+  };
+}
+
+export function mapRelatedPostsToBlogPosts(relatedPosts: ApiRelatedPost[]): BlogPost[] {
+  return relatedPosts.map(mapRelatedPostToBlogPost);
 }

@@ -3,7 +3,7 @@
  * The API returns nested category objects and string[] tags; the UI expects flat fields.
  */
 
-import { ApiAuthor, ApiBlog } from './types';
+import { ApiAuthor, ApiBlog, ApiRelatedPost } from './types';
 
 type RawCategory = { id: number; name: string; slug: string };
 
@@ -35,6 +35,9 @@ export type RawApiBlog = {
   canonicalUrl?: string | null;
   ogImageUrl?: string | null;
   status?: 'draft' | 'published';
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: string | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt?: string | null;
   category?: RawCategory;
   categoryId?: number;
@@ -48,6 +51,17 @@ export type RawApiBlog = {
   viewCount?: number;
   images?: string[] | RawGalleryImage[];
   galleryImages?: RawGalleryImage[];
+  relatedPosts?: Array<{
+    id?: number;
+    slug?: string;
+    heading?: string;
+    shortDescription?: string;
+    featuredImageUrl?: string | null;
+    publishedAt?: string | null;
+    status?: 'draft' | 'published';
+    category?: RawCategory;
+    categoryName?: string;
+  }>;
 };
 
 /** Normalize tags whether the API sends string[] or { id, name }[]. */
@@ -108,6 +122,31 @@ function normalizeAuthors(authors: RawApiBlog['authors']): ApiAuthor[] | undefin
   return normalized.length > 0 ? normalized : undefined;
 }
 
+function normalizeRelatedPosts(relatedPosts: RawApiBlog['relatedPosts']): ApiRelatedPost[] {
+  if (!Array.isArray(relatedPosts)) return [];
+
+  return relatedPosts
+    .map((post) => {
+      if (!post?.id || !post.slug || !post.heading) return null;
+      const category = post.category;
+      return {
+        id: post.id,
+        slug: post.slug,
+        heading: post.heading,
+        shortDescription: post.shortDescription ?? '',
+        featuredImageUrl: post.featuredImageUrl ?? null,
+        publishedAt: post.publishedAt ?? null,
+        category: {
+          id: category?.id ?? 0,
+          name: category?.name ?? post.categoryName ?? 'Uncategorized',
+          slug: category?.slug ?? '',
+        },
+        ...(post.status ? { status: post.status } : {}),
+      };
+    })
+    .filter((post): post is ApiRelatedPost => post !== null);
+}
+
 /** Map a single raw blog record from any API endpoint to ApiBlog. */
 export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
   const category = raw.category;
@@ -124,6 +163,9 @@ export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
     canonicalUrl: raw.canonicalUrl ?? null,
     ogImageUrl: raw.ogImageUrl ?? null,
     status: raw.status ?? 'draft',
+    publishType: raw.publishType ?? 'draft',
+    scheduledPublishAt: raw.scheduledPublishAt ?? null,
+    schedulerStatus: raw.schedulerStatus ?? null,
     publishedAt: raw.publishedAt ?? null,
     categoryId: category?.id ?? raw.categoryId ?? 0,
     categoryName: category?.name ?? raw.categoryName ?? 'Uncategorized',
@@ -135,6 +177,7 @@ export function normalizeApiBlog(raw: RawApiBlog): ApiBlog {
     updatedAt: raw.updatedAt ?? new Date().toISOString(),
     viewCount: raw.viewCount,
     galleryImages: normalizeGalleryImages(raw.images, raw.galleryImages),
+    relatedPosts: normalizeRelatedPosts(raw.relatedPosts),
   };
 }
 

@@ -21,6 +21,9 @@ type BlogRow = RowDataPacket & {
   canonical_url: string | null;
   og_image_url: string | null;
   status: BlogStatus;
+  publish_type: 'draft' | 'publish_now' | 'scheduled';
+  scheduled_publish_at: Date | null;
+  scheduler_status: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   published_at: Date | null;
   category_id: number;
   author_name: string;
@@ -34,7 +37,7 @@ type BlogRow = RowDataPacket & {
 const BLOG_SELECT = `
   id, heading, slug, short_description, body, featured_image_url,
   meta_title, meta_description, canonical_url, og_image_url,
-  status, published_at, category_id, author_name, created_by_admin_id,
+  status, publish_type, scheduled_publish_at, scheduler_status, published_at, category_id, author_name, created_by_admin_id,
   view_count, created_at, updated_at, deleted_at
 `;
 
@@ -51,6 +54,9 @@ function mapBlog(row: BlogRow): BlogRecord {
     canonicalUrl: row.canonical_url,
     ogImageUrl: row.og_image_url,
     status: row.status,
+    publishType: row.publish_type,
+    scheduledPublishAt: row.scheduled_publish_at,
+    schedulerStatus: row.scheduler_status,
     publishedAt: row.published_at,
     categoryId: row.category_id,
     authorName: row.author_name,
@@ -76,6 +82,9 @@ export type CreateBlogRow = {
   canonicalUrl?: string | null;
   ogImageUrl?: string | null;
   status?: BlogStatus;
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: Date | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt?: Date | null;
 };
 
@@ -84,6 +93,9 @@ export type UpdateBlogRow = Partial<
 > & {
   slug?: string;
   status?: BlogStatus;
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: Date | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
 };
 
 function sortClause(sort: PublicBlogSort): string {
@@ -97,6 +109,11 @@ function sortClause(sort: PublicBlogSort): string {
       return 'b.published_at DESC, b.id DESC';
   }
 }
+
+export type AdminBlogListFilters = {
+  search?: string;
+  excludeId?: number;
+};
 
 export class BlogRepository {
   async slugTaken(slug: string, excludeId?: number): Promise<boolean> {
@@ -141,8 +158,8 @@ export class BlogRepository {
         `INSERT INTO blogs (
           heading, slug, short_description, body, featured_image_url,
           meta_title, meta_description, canonical_url, og_image_url,
-          status, published_at, category_id, author_name, created_by_admin_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          status, publish_type, scheduled_publish_at, scheduler_status, published_at, category_id, author_name, created_by_admin_id
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           row.heading,
           row.slug,
@@ -154,6 +171,9 @@ export class BlogRepository {
           row.canonicalUrl ?? null,
           row.ogImageUrl ?? null,
           row.status ?? 'draft',
+          row.publishType ?? 'draft',
+          row.scheduledPublishAt ?? null,
+          row.schedulerStatus ?? null,
           row.publishedAt ?? null,
           row.categoryId,
           row.authorName,
@@ -185,6 +205,9 @@ export class BlogRepository {
     if (row.canonicalUrl !== undefined) assign('canonical_url', row.canonicalUrl);
     if (row.ogImageUrl !== undefined) assign('og_image_url', row.ogImageUrl);
     if (row.status !== undefined) assign('status', row.status);
+    if (row.publishType !== undefined) assign('publish_type', row.publishType);
+    if (row.scheduledPublishAt !== undefined) assign('scheduled_publish_at', row.scheduledPublishAt);
+    if (row.schedulerStatus !== undefined) assign('scheduler_status', row.schedulerStatus);
     if (row.publishedAt !== undefined) assign('published_at', row.publishedAt);
     if (row.categoryId !== undefined) assign('category_id', row.categoryId);
     if (row.authorName !== undefined) assign('author_name', row.authorName);
@@ -356,16 +379,34 @@ export class BlogRepository {
     }
   }
 
-  async countAdmin(): Promise<number> {
+  async countAdmin(filters: AdminBlogListFilters = {}): Promise<number> {
+    const { where, params } = this.buildAdminWhere(filters);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
-        'SELECT COUNT(*) AS total FROM blogs WHERE deleted_at IS NULL',
+        `SELECT COUNT(*) AS total FROM blogs WHERE ${where}`,
+        params,
       );
       return Number(rows[0]?.total ?? 0);
     } finally {
       connection.release();
     }
+  }
+
+  private buildAdminWhere(filters: AdminBlogListFilters): { where: string; params: unknown[] } {
+    const clauses = ['deleted_at IS NULL'];
+    const params: unknown[] = [];
+
+    if (filters.search?.trim()) {
+      clauses.push('heading LIKE ?');
+      params.push(`%${filters.search.trim()}%`);
+    }
+    if (filters.excludeId !== undefined) {
+      clauses.push('id <> ?');
+      params.push(filters.excludeId);
+    }
+
+    return { where: clauses.join(' AND '), params };
   }
 
   /** Count all blogs (including deleted, for admin dashboard). */
@@ -401,16 +442,20 @@ export class BlogRepository {
     }
   }
 
-  async listAdmin(pagination: PaginationParams): Promise<BlogRecord[]> {
+  async listAdmin(
+    pagination: PaginationParams,
+    filters: AdminBlogListFilters = {},
+  ): Promise<BlogRecord[]> {
+    const { where, params } = this.buildAdminWhere(filters);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<BlogRow[]>(
         `SELECT ${BLOG_SELECT.replace(/\n/g, ' ')}
          FROM blogs
-         WHERE deleted_at IS NULL
+         WHERE ${where}
          ORDER BY updated_at DESC, id DESC
          LIMIT ? OFFSET ?`,
-        [pagination.limit, pagination.offset],
+        [...params, pagination.limit, pagination.offset],
       );
       return rows.map(mapBlog);
     } finally {

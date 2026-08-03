@@ -51,6 +51,21 @@ export interface ApiAuthorListResponse {
 }
 
 // Blog Types
+export interface ApiRelatedPost {
+  id: number;
+  slug: string;
+  heading: string;
+  shortDescription: string;
+  featuredImageUrl: string | null;
+  publishedAt: string | null;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  status?: 'draft' | 'published';
+}
+
 export interface ApiBlog {
   id: number;
   heading: string;
@@ -63,6 +78,9 @@ export interface ApiBlog {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   status: 'draft' | 'published';
+  publishType?: 'draft' | 'publish_now' | 'scheduled';
+  scheduledPublishAt?: string | null;
+  schedulerStatus?: 'pending' | 'published' | 'failed' | 'cancelled' | null;
   publishedAt: string | null;
   categoryId: number;
   categoryName: string;
@@ -79,6 +97,7 @@ export interface ApiBlog {
     imageUrl: string;
     displayOrder: number;
   }>;
+  relatedPosts?: ApiRelatedPost[];
 }
 
 export interface ApiBlogListResponse {

@@ -2,6 +2,7 @@ import { createApp } from './app';
 import { closeDatabasePool, testDatabaseConnection } from './config/database';
 import { env } from './config/env';
 import { runMigrations } from './database/migrate';
+import { startScheduler, stopScheduler } from './jobs/scheduler.job';
 import { logger } from './utils/logger';
 
 async function bootstrap(): Promise<void> {
@@ -21,10 +22,12 @@ async function bootstrap(): Promise<void> {
 
   const server = app.listen(env.PORT, () => {
     logger.info('Server listening', { port: env.PORT, nodeEnv: env.NODE_ENV });
+    startScheduler();
   });
 
   const shutdown = async (signal: string) => {
     logger.info('Shutdown signal received', { signal });
+    stopScheduler();
     server.close(async () => {
       await closeDatabasePool();
       process.exit(0);

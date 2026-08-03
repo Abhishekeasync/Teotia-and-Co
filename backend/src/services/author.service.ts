@@ -1,5 +1,5 @@
 import { HTTP_STATUS } from '../constants';
-import { AuthorDetail, AuthorSummary } from '../interfaces/author.interface';
+import { AuthorDetail } from '../interfaces/author.interface';
 import { AuthorRepository, CreateAuthorRow, UpdateAuthorRow } from '../repositories/author.repository';
 import { ApiError } from '../utils/ApiError';
 import { buildPaginationMeta, PaginationParams } from '../utils/pagination';

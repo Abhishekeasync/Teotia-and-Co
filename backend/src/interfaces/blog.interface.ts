@@ -1,4 +1,6 @@
 export type BlogStatus = 'draft' | 'published';
+export type PublishType = 'draft' | 'publish_now' | 'scheduled';
+export type SchedulerStatus = 'pending' | 'published' | 'failed' | 'cancelled';
 
 import { AuthorSummary } from './author.interface';
 
@@ -21,6 +23,9 @@ export type BlogRecord = {
   canonicalUrl: string | null;
   ogImageUrl: string | null;
   status: BlogStatus;
+  publishType: PublishType;
+  scheduledPublishAt: Date | null;
+  schedulerStatus: SchedulerStatus | null;
   publishedAt: Date | null;
   categoryId: number;
   authorName: string;
@@ -30,6 +35,18 @@ export type BlogRecord = {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+};
+
+export type RelatedPostSummary = {
+  id: number;
+  slug: string;
+  heading: string;
+  shortDescription: string;
+  featuredImageUrl: string | null;
+  publishedAt: string | null;
+  category: BlogCategoryRef;
+  /** Present on admin responses so editors can see draft/unpublished picks. */
+  status?: BlogStatus;
 };
 
 export type PublicBlogSummary = {
@@ -42,6 +59,7 @@ export type PublicBlogSummary = {
   publishedAt: string | null;
   category: BlogCategoryRef;
   tags: string[];
+  relatedPosts?: RelatedPostSummary[];
 };
 
 export type BlogImageItem = {
@@ -63,6 +81,9 @@ export type PublicBlogDetail = PublicBlogSummary & {
 export type AdminBlogDetail = Omit<PublicBlogDetail, 'images'> & {
   id: number;
   status: BlogStatus;
+  publishType: PublishType;
+  scheduledPublishAt: string | null;
+  schedulerStatus: SchedulerStatus | null;
   categoryId: number;
   viewCount: number;
   createdAt: string;

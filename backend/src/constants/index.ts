@@ -31,6 +31,8 @@ export const AUTH_RATE_LIMIT_MAX = 50;
 export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024;
 /** Max gallery images stored per blog post (featured/og are separate SEO fields). */
 export const MAX_BLOG_IMAGES = 5;
+/** Max manually selected related posts per blog. */
+export const MAX_RELATED_POSTS = 12;
 export const UPLOAD_ALLOWED_MIME = [
   'image/jpeg',
   'image/jpg',

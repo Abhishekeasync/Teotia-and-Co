@@ -31,7 +31,7 @@ export function assertImageUpload(file: Express.Multer.File | undefined): Expres
   }
   const mime = file.mimetype.toLowerCase();
   if (!UPLOAD_ALLOWED_MIME.includes(mime as (typeof UPLOAD_ALLOWED_MIME)[number])) {
-    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Invalid file type');
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Invalid file type. Accepted formats: JPEG, PNG, WebP.');
   }
   return file;
 }

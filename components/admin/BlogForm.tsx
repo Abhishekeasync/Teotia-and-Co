@@ -16,9 +16,9 @@ import { useAdminNavigationGuard, useRegisterNavigationGuard } from '@/lib/hooks
 import { BlogGalleryUpload, GalleryImage } from '@/components/admin/BlogGalleryUpload';
 import { BlogPreview } from '@/components/admin/BlogPreview';
 import { AuthorPicker, AuthorPickerAuthor } from '@/components/admin/AuthorPicker';
+import { RelatedPostsField, RelatedPostItem } from '@/components/admin/RelatedPostsField';
 import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { adminApi, publicApi } from '@/lib/api/client';
-import { normalizeApiBlog } from '@/lib/api/normalize';
 import { ApiBlog } from '@/lib/api/types';
 import { useAuth } from '@/lib/hooks/useAuth';
 
@@ -28,6 +28,28 @@ type BlogFormProps = {
   blogId?: number;
   initial?: ApiBlog | null;
 };
+
+/** Convert a UTC ISO string (or Date) to the format datetime-local expects: YYYY-MM-DDTHH:MM in local time. */
+function toLocalDatetimeString(iso: string | Date): string {
+  const d = typeof iso === 'string' ? new Date(iso) : iso;
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+}
+
+function validateScheduledPublishAt(value: string): string | null {
+  if (!value.trim()) {
+    return 'Please select a date and time for scheduled publishing';
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Scheduled publish time is invalid';
+  }
+  if (parsed.getTime() <= Date.now()) {
+    return 'Scheduled publish time must be in the future';
+  }
+  return null;
+}
 
 export function BlogForm({ blogId, initial }: BlogFormProps) {
   const router = useRouter();
@@ -59,6 +81,15 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
   const [canonicalUrl, setCanonicalUrl] = useState(initial?.canonicalUrl ?? '');
   const [authorIds, setAuthorIds] = useState<number[]>(
     initial?.authors?.map(a => a.id) ?? []
+  );
+  const [relatedPosts, setRelatedPosts] = useState<RelatedPostItem[]>(
+    initial?.relatedPosts ?? []
+  );
+  const [publishType, setPublishType] = useState<'draft' | 'publish_now' | 'scheduled'>(
+    initial?.publishType ?? 'draft'
+  );
+  const [scheduledPublishAt, setScheduledPublishAt] = useState(
+    initial?.scheduledPublishAt ? toLocalDatetimeString(initial.scheduledPublishAt) : ''
   );
   const [availableAuthors, setAvailableAuthors] = useState<AuthorPickerAuthor[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(false);
@@ -100,7 +131,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     metaDescription,
     canonicalUrl,
     authorIds,
+    relatedPosts,
     galleryImages,
+    publishType,
+    scheduledPublishAt,
     featuredFile,
     ogFile,
   }), [
@@ -114,7 +148,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     metaDescription,
     canonicalUrl,
     authorIds,
+    relatedPosts,
     galleryImages,
+    publishType,
+    scheduledPublishAt,
     featuredFile,
     ogFile,
   ]);
@@ -145,7 +182,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         setMetaDescription(applied.fields.metaDescription);
         setCanonicalUrl(applied.fields.canonicalUrl);
         setAuthorIds(applied.fields.authorIds);
+        setRelatedPosts(applied.fields.relatedPosts);
         setGalleryImages(applied.fields.galleryImages);
+        setPublishType(applied.fields.publishType);
+        setScheduledPublishAt(applied.fields.scheduledPublishAt);
         if (applied.featuredFile) setFeaturedFile(applied.featuredFile);
         if (applied.ogFile) setOgFile(applied.ogFile);
         toast.success('Draft restored');
@@ -217,7 +257,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     setMetaDescription(snapshot.metaDescription);
     setCanonicalUrl(snapshot.canonicalUrl);
     setAuthorIds([...snapshot.authorIds]);
+    setRelatedPosts(snapshot.relatedPosts.map((post) => ({ ...post, category: { ...post.category } })));
     setGalleryImages(snapshot.galleryImages.map((img) => ({ ...img })));
+    setPublishType(snapshot.publishType);
+    setScheduledPublishAt(snapshot.scheduledPublishAt);
     setFeaturedFile(snapshot.featuredFile ?? null);
     setOgFile(snapshot.ogFile ?? null);
   }, []);
@@ -236,6 +279,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           current.canonicalUrl.trim() ||
           current.authorIds.length > 0 ||
           current.galleryImages.length > 0 ||
+          current.publishType !== 'draft' ||
+          current.scheduledPublishAt !== '' ||
           current.featuredFile ||
           current.ogFile
       );
@@ -316,7 +361,19 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
-  const buildFormData = () => {
+  const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+  const validateImageFile = (file: File | null, label: string): boolean => {
+    if (!file) return true;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+      toast.error(`${label}: Only JPEG, PNG, and WebP images are supported.`);
+      return false;
+    }
+    return true;
+  };
+
+  const buildFormData = (publishTypeOverride?: typeof publishType) => {
+    const effectivePublishType = publishTypeOverride ?? publishType;
     const formData = new FormData();
     formData.append('heading', heading.trim());
     formData.append('shortDescription', shortDescription.trim());
@@ -326,6 +383,12 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
 
     if (authorIds.length > 0) {
       formData.append('authorIds', JSON.stringify(authorIds));
+    }
+
+    if (relatedPosts.length > 0) {
+      formData.append('relatedBlogIds', JSON.stringify(relatedPosts.map((post) => post.id)));
+    } else if (isEdit) {
+      formData.append('relatedBlogIds', JSON.stringify([]));
     }
 
     if (parsedTags.length > 0) {
@@ -342,6 +405,10 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       formData.append('metaDescription', metaDescription.trim());
     }
     if (canonicalUrl.trim()) formData.append('canonicalUrl', canonicalUrl.trim());
+    formData.append('publishType', effectivePublishType);
+    if (effectivePublishType === 'scheduled' && scheduledPublishAt) {
+      formData.append('scheduledPublishAt', new Date(scheduledPublishAt).toISOString());
+    }
     if (featuredFile) formData.append('featuredImage', featuredFile);
     if (ogFile) formData.append('ogImage', ogFile);
 
@@ -365,7 +432,18 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     };
   }, [showPreview]);
 
-  const save = async (publishAfter = false) => {
+  const saveSuccessMessage = (
+    effectivePublishType: typeof publishType,
+    editing: boolean,
+  ) => {
+    if (effectivePublishType === 'publish_now') return 'Blog published';
+    if (effectivePublishType === 'scheduled') return 'Blog scheduled';
+    return editing ? 'Blog updated' : 'Blog saved as draft';
+  };
+
+  const save = async (publishTypeOverride?: typeof publishType) => {
+    const effectivePublishType = publishTypeOverride ?? publishType;
+
     if (!heading.trim() || !shortDescription.trim() || !body.trim()) {
       toast.error('Heading, description, and body are required');
       return;
@@ -378,26 +456,29 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       toast.error('No categories available. Run backend migrations and restart the API.');
       return;
     }
+    
+    if (effectivePublishType === 'scheduled') {
+      const scheduleError = validateScheduledPublishAt(scheduledPublishAt);
+      if (scheduleError) {
+        toast.error(scheduleError);
+        return;
+      }
+    }
+
+    if (!validateImageFile(featuredFile, 'Featured image')) return;
+    if (!validateImageFile(ogFile, 'OG image')) return;
 
     setSaving(true);
     try {
-      const formData = buildFormData();
-      let savedId = blogId;
+      const formData = buildFormData(publishTypeOverride);
 
       if (isEdit && blogId) {
         await adminApi.blogs.update(blogId, formData);
-        toast.success('Blog updated');
       } else {
-        const res = await adminApi.blogs.create(formData);
-        const data = res as { data: { blog: unknown } };
-        savedId = normalizeApiBlog(data.data.blog as Parameters<typeof normalizeApiBlog>[0]).id;
-        toast.success('Blog saved as draft');
+        await adminApi.blogs.create(formData);
       }
 
-      if (publishAfter && savedId) {
-        await adminApi.blogs.publish(savedId);
-        toast.success('Blog published');
-      }
+      toast.success(saveSuccessMessage(effectivePublishType, isEdit));
 
       clearBlogDraft(blogId);
       router.push('/admin/blogs');
@@ -410,7 +491,7 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    save(false);
+    save('draft');
   };
 
   return (
@@ -548,11 +629,69 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         </div>
 
         <div className="admin-field">
+          <RelatedPostsField
+            blogId={blogId}
+            selected={relatedPosts}
+            onChange={setRelatedPosts}
+          />
+        </div>
+
+        <div className="admin-field">
+          <label>Publishing Options</label>
+          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', marginBottom: '1rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="draft" 
+                checked={publishType === 'draft'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Save as Draft
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="publish_now" 
+                checked={publishType === 'publish_now'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Publish Immediately
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'normal', cursor: 'pointer' }}>
+              <input 
+                type="radio" 
+                name="publishType" 
+                value="scheduled" 
+                checked={publishType === 'scheduled'} 
+                onChange={(e) => setPublishType(e.target.value as any)} 
+              />
+              Schedule for Later
+            </label>
+          </div>
+
+          {publishType === 'scheduled' && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <label htmlFor="scheduledPublishAt">Publish Date & Time (Local)</label>
+              <input
+                id="scheduledPublishAt"
+                type="datetime-local"
+                value={scheduledPublishAt}
+                onChange={(e) => setScheduledPublishAt(e.target.value)}
+                min={toLocalDatetimeString(new Date())}
+                required={publishType === 'scheduled'}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="admin-field">
           <label htmlFor="featuredImage">Featured image</label>
           <input
             id="featuredImage"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             onChange={(e) => setFeaturedFile(e.target.files?.[0] ?? null)}
           />
           {featuredPreviewUrl && (
@@ -575,7 +714,7 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           <input
             id="ogImage"
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             onChange={(e) => setOgFile(e.target.files?.[0] ?? null)}
           />
         </div>
@@ -627,9 +766,9 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           type="button"
           className="admin-btn admin-btn-primary"
           disabled={saving}
-          onClick={() => save(true)}
+          onClick={() => save()}
         >
-          {saving ? 'Saving…' : isEdit ? 'Save & publish' : 'Save & publish'}
+          {saving ? 'Saving…' : (publishType === 'publish_now' ? 'Save & Publish' : (publishType === 'scheduled' ? 'Save & Schedule' : 'Save changes'))}
         </button>
         <button
           type="button"
