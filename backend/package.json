@@ -12,6 +12,7 @@
     "migrate": "ts-node --transpile-only src/database/migrate.ts",
     "migrate:prod": "node dist/database/migrate.js",
     "seed": "ts-node --transpile-only -P tsconfig.seed.json scripts/seed.ts",
+    "s3:apply-cors": "ts-node --transpile-only scripts/apply-s3-cors.ts",
     "db:setup": "npm run migrate && npm run seed",
     "db:setup:prod": "npm run migrate:prod"
   },

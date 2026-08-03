@@ -294,10 +294,7 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     setAuthorsLoading(true);
     try {
       const res = await adminApi.authors.list({ limit: 100 });
-      const data = res as unknown as {
-        data: { authors: AuthorPickerAuthor[] };
-      };
-      setAvailableAuthors(data.data.authors);
+      setAvailableAuthors(res.data.authors);
     } catch {
       // Keep existing list on refresh failure
     } finally {

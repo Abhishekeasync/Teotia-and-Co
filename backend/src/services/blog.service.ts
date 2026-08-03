@@ -249,11 +249,13 @@ export class BlogService {
     }
 
     if (input.authorIds !== undefined) {
+      const resolvedAuthorName =
+        input.authorIds.length > 0
+          ? await this.resolveAuthorDisplayName(input.authorIds)
+          : undefined;
       await this.authorRepository.replaceBlogAuthors(id, input.authorIds);
-      if (input.authorIds.length > 0) {
-        await this.blogRepository.update(id, {
-          authorName: await this.resolveAuthorDisplayName(input.authorIds),
-        });
+      if (resolvedAuthorName !== undefined) {
+        await this.blogRepository.update(id, { authorName: resolvedAuthorName });
       }
     }
 

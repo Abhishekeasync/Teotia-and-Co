@@ -45,6 +45,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     href: string,
     exact?: boolean
   ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
     if (isSameNavTarget(href, exact)) {
       setSidebarOpen(false);
       return;

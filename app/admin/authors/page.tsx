@@ -10,7 +10,7 @@ import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { AdminPagination } from '@/components/admin/AdminPagination';
 import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
-import { ApiAuthorDetail, ApiAuthorListResponse } from '@/lib/api/types';
+import { ApiAuthorDetail } from '@/lib/api/types';
 import { useDeleteDialog } from '@/lib/hooks/useDeleteDialog';
 
 export default function AdminAuthorsPage() {
@@ -25,10 +25,9 @@ export default function AdminAuthorsPage() {
     setLoading(true);
     try {
       const res = await adminApi.authors.list({ page: pageNum, limit: 20 });
-      const data = res as unknown as { data: ApiAuthorListResponse };
-      setAuthors(data.data.authors);
-      setTotalPages(data.data.pagination.totalPages);
-      setPage(data.data.pagination.page);
+      setAuthors(res.data.authors);
+      setTotalPages(res.data.pagination.totalPages);
+      setPage(res.data.pagination.page);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load authors');
     } finally {
