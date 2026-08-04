@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import Footer from "@/components/Footer";
 import { PublicShell } from "@/components/PublicShell";
 import { ToastProvider } from "@/components/ToastProvider";
 
@@ -25,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <PublicShell>{children}</PublicShell>
+        <PublicShell footer={<Footer />}>{children}</PublicShell>
         <ToastProvider />
       </body>
     </html>
