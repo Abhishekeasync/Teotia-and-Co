@@ -138,6 +138,7 @@ export const publicBlogListQuerySchema = z.object({
   search: z.string().trim().max(200).optional(),
   category: z.string().trim().max(120).optional(),
   tag: z.string().trim().max(100).optional(),
+  author: z.string().trim().max(120).optional(),
   sort: z.enum(['latest', 'oldest', 'popular']).optional().default('latest'),
 });
 

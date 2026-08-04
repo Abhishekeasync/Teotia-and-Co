@@ -2,9 +2,14 @@
 
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 
-export function PublicShell({ children }: { children: React.ReactNode }) {
+export function PublicShell({
+  children,
+  footer,
+}: {
+  children: React.ReactNode;
+  footer: React.ReactNode;
+}) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
@@ -16,7 +21,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
     <>
       <Header />
       <main>{children}</main>
-      <Footer />
+      {footer}
     </>
   );
 }

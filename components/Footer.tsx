@@ -4,6 +4,8 @@ import { buildConsultationUrl } from '@/lib/consultation';
 import { SITE_CONTACT } from '@/lib/site';
 import './header-footer.css';
 
+const consultationHref = buildConsultationUrl({ source: 'footer' });
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -32,8 +34,10 @@ export default function Footer() {
           <Link href="/about">About Us</Link>
           <Link href="/services">Services</Link>
           <Link href="/blog">Blog</Link>
-          <Link href={buildConsultationUrl({ source: 'footer' })}>Book Consultation</Link>
+          <Link href={consultationHref}>Book Consultation</Link>
           <Link href="/contact">Contact</Link>
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <Link href="/terms-of-service">Terms of Service</Link>
         </div>
         <div className="footer-col">
           <h4>Newsletter</h4>
@@ -50,6 +54,11 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <p>&copy; 2026 TEOTIA &amp; CO. All Rights Reserved.</p>
+        <div className="footer-legal-links">
+          <Link href="/privacy-policy">Privacy Policy</Link>
+          <span aria-hidden="true">·</span>
+          <Link href="/terms-of-service">Terms of Service</Link>
+        </div>
       </div>
     </footer>
   );
