@@ -155,6 +155,7 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
       }
       if (profileImageCleared && isEdit) {
         formData.append('removeProfileImage', 'true');
+        formData.append('profileImageUrl', '');
       }
 
       if (isEdit && initialData) {
