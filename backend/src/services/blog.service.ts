@@ -40,6 +40,7 @@ export type CreateBlogInput = {
   relatedBlogIds?: number[];
   publishType?: 'draft' | 'publish_now' | 'scheduled';
   scheduledPublishAt?: Date | null;
+  removeFeaturedImage?: boolean;
 };
 
 export type UpdateBlogInput = Partial<CreateBlogInput>;
@@ -355,7 +356,12 @@ export class BlogService {
       patch.ogImageUrl = input.ogImageUrl;
     }
 
-    if (input.featuredImageUrl !== undefined && input.featuredImageUrl !== existing.featuredImageUrl) {
+    if (input.removeFeaturedImage) {
+      if (existing.featuredImageUrl) {
+        await deleteBlogImageByUrl(existing.featuredImageUrl);
+      }
+      patch.featuredImageUrl = null;
+    } else if (input.featuredImageUrl !== undefined && input.featuredImageUrl !== existing.featuredImageUrl) {
       await deleteBlogImageByUrl(existing.featuredImageUrl);
       patch.featuredImageUrl = input.featuredImageUrl;
     }

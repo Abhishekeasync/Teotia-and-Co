@@ -327,9 +327,10 @@ export class BlogRepository {
     }
     if (authorId !== undefined) {
       clauses.push(
-        `EXISTS (SELECT 1 FROM blog_authors ba WHERE ba.blog_id = b.id AND ba.author_id = ?)`,
+        `(EXISTS (SELECT 1 FROM blog_authors ba WHERE ba.blog_id = b.id AND ba.author_id = ?)
+          OR EXISTS (SELECT 1 FROM authors a WHERE a.id = ? AND a.name = b.author_name))`,
       );
-      params.push(authorId);
+      params.push(authorId, authorId);
     }
 
     return { where: clauses.join(' AND '), params };

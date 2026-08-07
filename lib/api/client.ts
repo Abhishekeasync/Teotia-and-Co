@@ -47,6 +47,7 @@ interface RequestOptions extends RequestInit {
   requireAuth?: boolean;
   /** Seconds to cache public GET responses via Next.js Data Cache. */
   revalidate?: number | false;
+  cache?: RequestCache;
 }
 
 /**
@@ -57,7 +58,7 @@ async function fetchApi<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { requireAuth = false, revalidate, ...fetchOptions } = options;
+  const { requireAuth = false, revalidate, cache, ...fetchOptions } = options;
 
   const url = `${getApiUrl()}${endpoint}`;
   const isFormData = fetchOptions.body instanceof FormData;
@@ -74,6 +75,7 @@ async function fetchApi<T>(
       ...fetchOptions,
       headers,
       credentials,
+      ...(cache !== undefined ? { cache } : {}),
       ...(revalidate !== undefined ? { next: { revalidate } } : {}),
     });
 
@@ -130,7 +132,11 @@ export const publicApi = {
       if (params?.author) query.set('author', params.author);
       if (params?.sort) query.set('sort', params.sort);
 
-      return fetchApi(`/blogs?${query.toString()}`, { revalidate: 120 });
+      const hasFilter = Boolean(params?.author || params?.tag || params?.category || params?.search);
+
+      return fetchApi(`/blogs?${query.toString()}`, {
+        ...(hasFilter ? { cache: 'no-store' } : { next: { revalidate: 120 } }),
+      });
     },
 
     getBySlug: (slug: string) => fetchApi(`/blogs/${slug}`, { revalidate: 300 }),

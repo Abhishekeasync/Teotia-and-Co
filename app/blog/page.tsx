@@ -6,17 +6,20 @@ import { publicApi } from '@/lib/api/client';
 import { normalizeApiBlogs } from '@/lib/api/normalize';
 import { mapApiBlogsToPost } from '@/lib/api/mappers';
 
+export const dynamic = 'force-dynamic';
+
 type BlogPageProps = {
-  searchParams: Promise<{ tag?: string }>;
+  searchParams: Promise<{ tag?: string; author?: string }>;
 };
 
-async function getBlogPosts(tag?: string) {
+async function getBlogPosts(filters: { tag?: string; author?: string }) {
   try {
     const response = await publicApi.blogs.list({
       page: 1,
       limit: 100,
       sort: 'latest',
-      tag,
+      tag: filters.tag,
+      author: filters.author,
     });
     const data = response as { data?: { blogs?: unknown[] } };
     const blogs = normalizeApiBlogs((data.data?.blogs ?? []) as Parameters<typeof normalizeApiBlogs>[0]);
@@ -27,9 +30,22 @@ async function getBlogPosts(tag?: string) {
   }
 }
 
+async function getAuthorDisplayName(authorSlug: string) {
+  try {
+    const res = await publicApi.authors.getBySlug(authorSlug);
+    const data = res as unknown as { data: { author: { name: string } } };
+    return data.data.author.name;
+  } catch {
+    return authorSlug;
+  }
+}
+
 export default async function BlogPage({ searchParams }: BlogPageProps) {
-  const { tag } = await searchParams;
-  const posts = await getBlogPosts(tag);
+  const { tag, author } = await searchParams;
+  const [posts, activeAuthorName] = await Promise.all([
+    getBlogPosts({ tag, author }),
+    author ? getAuthorDisplayName(author) : Promise.resolve(undefined),
+  ]);
 
   return (
     <>
@@ -58,6 +74,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <BlogSection
         posts={posts}
         activeTag={tag}
+        activeAuthorName={author ? activeAuthorName : undefined}
         title="Financial Insights"
         subtitle="Explore expert perspectives on accounting, taxation, compliance, and strategic financial management for growing businesses."
       />

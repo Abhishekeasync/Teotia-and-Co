@@ -34,7 +34,7 @@ export default function AdminBlogsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [actionId, setActionId] = useState<number | null>(null);
+  const [actionState, setActionState] = useState<{ id: number; type: 'publish' | 'delete' } | null>(null);
   const { requestDelete, deleteDialog } = useDeleteDialog();
 
   const loadBlogs = async (pageNum = page) => {
@@ -57,7 +57,7 @@ export default function AdminBlogsPage() {
   }, []);
 
   const handlePublishToggle = async (blog: ApiBlog) => {
-    setActionId(blog.id);
+    setActionState({ id: blog.id, type: 'publish' });
     try {
       if (blog.status === 'published') {
         await adminApi.blogs.unpublish(blog.id);
@@ -70,7 +70,7 @@ export default function AdminBlogsPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action failed');
     } finally {
-      setActionId(null);
+      setActionState(null);
     }
   };
 
@@ -87,7 +87,7 @@ export default function AdminBlogsPage() {
         </>
       ),
       onConfirm: async () => {
-        setActionId(blog.id);
+        setActionState({ id: blog.id, type: 'delete' });
         try {
           await adminApi.blogs.delete(blog.id);
           toast.success('Blog deleted');
@@ -96,7 +96,7 @@ export default function AdminBlogsPage() {
           toast.error(err instanceof Error ? err.message : 'Delete failed');
           throw err;
         } finally {
-          setActionId(null);
+          setActionState(null);
         }
       },
     });
@@ -139,7 +139,12 @@ export default function AdminBlogsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {blogs.map((blog) => (
+                  {blogs.map((blog) => {
+                    const isPublishing = actionState?.id === blog.id && actionState.type === 'publish';
+                    const isDeleting = actionState?.id === blog.id && actionState.type === 'delete';
+                    const isBusy = isPublishing || isDeleting;
+
+                    return (
                     <tr key={blog.id}>
                       <td>
                         <Link href={`/admin/blogs/edit/${blog.id}`}>
@@ -173,8 +178,8 @@ export default function AdminBlogsPage() {
                             label={blog.status === 'published' ? 'Unpublish' : 'Publish'}
                             icon={blog.status === 'published' ? <IconUnpublish /> : <IconPublish />}
                             variant={blog.status === 'published' ? 'warning' : 'success'}
-                            disabled={actionId === blog.id}
-                            loading={actionId === blog.id}
+                            disabled={isBusy}
+                            loading={isPublishing}
                             onClick={() => handlePublishToggle(blog)}
                           />
                           {blog.status === 'published' && (
@@ -189,14 +194,15 @@ export default function AdminBlogsPage() {
                             label="Delete"
                             icon={<IconTrash />}
                             variant="danger"
-                            disabled={actionId === blog.id}
-                            loading={actionId === blog.id}
+                            disabled={isBusy}
+                            loading={isDeleting}
                             onClick={() => requestBlogDelete(blog)}
                           />
                         </AdminActions>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -48,12 +48,18 @@ export function EditorLinkDialog({
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     const normalized = normalizeEditorLinkUrl(url);
     if (!normalized) {
       setError('Enter a valid URL (https://, http://, mailto:, or tel:)');
       return;
     }
     onSubmit(normalized);
+    onClose();
+  };
+
+  const handleRemove = () => {
+    onRemove?.();
     onClose();
   };
 
@@ -75,7 +81,7 @@ export function EditorLinkDialog({
         <h3 id="editor-link-dialog-title" className="editor-dialog-title">
           {initialUrl ? 'Edit link' : 'Insert link'}
         </h3>
-        <form onSubmit={handleSubmit}>
+        <div>
           <label htmlFor={inputId} className="editor-dialog-label">
             URL
           </label>
@@ -90,6 +96,12 @@ export function EditorLinkDialog({
               setUrl(event.target.value);
               if (error) setError(null);
             }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleSubmit(event);
+              }
+            }}
             aria-invalid={Boolean(error)}
             aria-describedby={error ? 'editor-link-error' : undefined}
           />
@@ -103,10 +115,7 @@ export function EditorLinkDialog({
               <button
                 type="button"
                 className="admin-btn admin-btn-danger admin-btn-sm"
-                onClick={() => {
-                  onRemove();
-                  onClose();
-                }}
+                onClick={handleRemove}
               >
                 Remove link
               </button>
@@ -120,15 +129,16 @@ export function EditorLinkDialog({
                 Cancel
               </button>
               <button
-                type="submit"
+                type="button"
                 className="admin-btn admin-btn-primary admin-btn-sm"
                 disabled={!url.trim() || !isValidEditorLinkUrl(url)}
+                onClick={handleSubmit}
               >
                 {initialUrl ? 'Update' : 'Insert'}
               </button>
             </div>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
