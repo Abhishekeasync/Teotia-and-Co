@@ -80,6 +80,35 @@ export function normalizeBlogFormBody(req: Request, _res: Response, next: NextFu
   next();
 }
 
+/** Normalize multipart author create/update fields before Zod validation. */
+export function normalizeAuthorFormBody(req: Request, _res: Response, next: NextFunction): void {
+  const body = req.body as Record<string, unknown>;
+  if (!body || typeof body !== 'object') {
+    next();
+    return;
+  }
+
+  if (body.profileImageUrl === '' || body.profileImageUrl === 'null') {
+    body.profileImageUrl = null;
+  }
+
+  if (body.removeProfileImage !== undefined) {
+    body.removeProfileImage =
+      body.removeProfileImage === 'true' ||
+      body.removeProfileImage === true ||
+      body.removeProfileImage === '1' ||
+      body.removeProfileImage === 1;
+  }
+
+  for (const key of Object.keys(body)) {
+    if (body[key] === '') {
+      body[key] = undefined;
+    }
+  }
+
+  next();
+}
+
 export function pickUploadedFile(
   files: Express.Multer.File[] | { [fieldname: string]: Express.Multer.File[] } | undefined,
   field: string,

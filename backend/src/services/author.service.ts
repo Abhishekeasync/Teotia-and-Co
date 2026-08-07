@@ -17,6 +17,7 @@ export type CreateAuthorInput = {
 
 export type UpdateAuthorInput = Partial<CreateAuthorInput> & {
   removeProfileImage?: boolean;
+  profileImageUrl?: string | null;
 };
 
 export class AuthorService {
@@ -83,7 +84,7 @@ export class AuthorService {
         await deleteBlogImageByUrl(existing.profileImageUrl);
       }
       patch.profileImageUrl = newUrl;
-    } else if (input.removeProfileImage) {
+    } else if (input.removeProfileImage || input.profileImageUrl === null) {
       if (existing.profileImageUrl) {
         await deleteBlogImageByUrl(existing.profileImageUrl);
       }
