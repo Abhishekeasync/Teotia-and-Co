@@ -28,7 +28,7 @@ export function RichTextEditor({
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
   const [replaceImageMode, setReplaceImageMode] = useState(false);
-  const [, setSelectionTick] = useState(0);
+  const [selectionTick, setSelectionTick] = useState(0);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -73,6 +73,21 @@ export function RichTextEditor({
   const handleLinkSubmit = useCallback(
     (url: string) => {
       if (!editor || editor.isActive('image')) return;
+
+      const { empty } = editor.state.selection;
+      if (empty) {
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'text',
+            text: url,
+            marks: [{ type: 'link', attrs: { href: url } }],
+          })
+          .run();
+        return;
+      }
+
       editor
         .chain()
         .focus()
@@ -126,6 +141,7 @@ export function RichTextEditor({
     <div className="rich-text-editor">
       <EditorToolbar
         editor={editor}
+        selectionVersion={selectionTick}
         onLinkClick={() => setLinkDialogOpen(true)}
         onImageClick={() => openImageDialog(false)}
         onReplaceImageClick={() => openImageDialog(true)}

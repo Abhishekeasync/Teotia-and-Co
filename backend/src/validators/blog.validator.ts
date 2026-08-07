@@ -100,6 +100,10 @@ const blogBodySchema = z.object({
     emptyToUndefined,
     z.string().datetime().nullable().optional()
   ),
+  removeFeaturedImage: z.preprocess(
+    (value) => value === 'true' || value === true,
+    z.boolean().optional(),
+  ),
 });
 
 function requireScheduledPublishAt(

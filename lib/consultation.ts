@@ -94,3 +94,21 @@ export function appendConsultationSource(message: string, source: string | null)
 
   return `${prefix}${message}`;
 }
+
+const CONSULTATION_SOURCE_PREFIX = /^\[Source:\s*(.+?)\]\s*(?:\r?\n\r?\n|\r?\n)?/;
+
+/** Split stored enquiry text into optional source metadata and user-visible body. */
+export function parseConsultationMessage(message: string): {
+  source: string | null;
+  body: string;
+} {
+  const match = message.match(CONSULTATION_SOURCE_PREFIX);
+  if (!match) {
+    return { source: null, body: message };
+  }
+
+  return {
+    source: match[1].trim(),
+    body: message.slice(match[0].length),
+  };
+}

@@ -3,9 +3,11 @@
 import type { ReactNode } from 'react';
 import type { Editor } from '@tiptap/react';
 import { applyListFormat } from './listCommands';
+import { canClearEditorFormatting, clearEditorFormatting } from './clearFormatting';
 
 type ToolbarButtonProps = {
   editor: Editor;
+  selectionVersion?: number;
   onLinkClick: () => void;
   onImageClick: () => void;
   onReplaceImageClick: () => void;
@@ -27,7 +29,14 @@ function ToolbarButton({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onMouseDown={(event) => {
+        event.preventDefault();
+      }}
+      onClick={(event) => {
+        event.preventDefault();
+        if (disabled) return;
+        onClick();
+      }}
       className={active ? 'is-active' : ''}
       disabled={disabled}
       title={title}
@@ -41,6 +50,7 @@ function ToolbarButton({
 
 export function EditorToolbar({
   editor,
+  selectionVersion: _selectionVersion,
   onLinkClick,
   onImageClick,
   onReplaceImageClick,
@@ -48,7 +58,7 @@ export function EditorToolbar({
   const canUndo = editor.can().chain().focus().undo().run();
   const canRedo = editor.can().chain().focus().redo().run();
   const imageSelected = editor.isActive('image');
-  const textSelected = !imageSelected && !editor.state.selection.empty;
+  const canClearFormatting = canClearEditorFormatting(editor);
 
   const openLinkDialog = () => {
     if (imageSelected) return;
@@ -233,10 +243,8 @@ export function EditorToolbar({
       <div className="toolbar-group">
         <ToolbarButton
           title="Clear formatting"
-          disabled={!textSelected && !editor.isActive('link')}
-          onClick={() =>
-            editor.chain().focus().unsetAllMarks().clearNodes().run()
-          }
+          disabled={!canClearFormatting}
+          onClick={() => clearEditorFormatting(editor)}
         >
           ✕ Clear
         </ToolbarButton>

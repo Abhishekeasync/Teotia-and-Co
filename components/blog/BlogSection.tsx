@@ -2,6 +2,7 @@ import './blog-editorial.css';
 import { BlogPost } from '@/lib/blog-posts';
 import { BlogGrid } from './BlogGrid';
 import { BlogEmptyState } from './BlogEmptyState';
+import { BlogAuthorFilter } from './BlogAuthorFilter';
 import { BlogTagFilter } from './BlogTagFilter';
 
 type BlogSectionProps = {
@@ -11,6 +12,7 @@ type BlogSectionProps = {
   showHeader?: boolean;
   infiniteScroll?: boolean;
   activeTag?: string;
+  activeAuthorName?: string;
 };
 
 export function BlogSection({
@@ -20,11 +22,15 @@ export function BlogSection({
   showHeader = true,
   infiniteScroll = true,
   activeTag,
+  activeAuthorName,
 }: BlogSectionProps) {
+  const hasActiveFilter = Boolean(activeTag || activeAuthorName);
+
   return (
     <section className="section section-gray blog-insights-section" aria-labelledby={showHeader ? 'blog-insights-heading' : undefined}>
       <div className="blog-insights-inner">
         {activeTag && <BlogTagFilter tag={activeTag} />}
+        {activeAuthorName && <BlogAuthorFilter authorName={activeAuthorName} />}
 
         {showHeader && (
           <header className="blog-insights-header">
@@ -38,13 +44,19 @@ export function BlogSection({
 
         {posts.length === 0 ? (
           <BlogEmptyState
-            title={activeTag ? `No posts for #${activeTag}` : undefined}
-            message={
+            title={
               activeTag
-                ? 'Try another tag or view all blog posts.'
+                ? `No posts for #${activeTag}`
+                : activeAuthorName
+                  ? `No posts by ${activeAuthorName}`
+                  : undefined
+            }
+            message={
+              hasActiveFilter
+                ? 'Try another filter or view all blog posts.'
                 : undefined
             }
-            showClearFilter={Boolean(activeTag)}
+            showClearFilter={hasActiveFilter}
           />
         ) : (
           <BlogGrid posts={posts} infiniteScroll={infiniteScroll} />

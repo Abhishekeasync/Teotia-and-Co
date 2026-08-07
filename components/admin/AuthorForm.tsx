@@ -7,6 +7,7 @@ import { adminApi } from '@/lib/api/client';
 import { appendQueryParam } from '@/lib/admin/blogDraft';
 import { ApiAuthorDetail } from '@/lib/api/types';
 import { ImageCropModal } from '@/components/admin/ImageCropModal';
+import { DeleteDialog } from '@/components/admin/DeleteDialog';
 
 interface AuthorFormProps {
   initialData?: ApiAuthorDetail;
@@ -39,6 +40,8 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
   );
   const [cropSource, setCropSource] = useState<string | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [removePhotoOpen, setRemovePhotoOpen] = useState(false);
+  const [profileImageCleared, setProfileImageCleared] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const openCropModal = (src: string) => {
@@ -74,6 +77,7 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
 
     setImageFile(file);
     setImagePreview(previewUrl);
+    setProfileImageCleared(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -113,6 +117,7 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
+    setProfileImageCleared(true);
     setCropSource(null);
     setCropModalOpen(false);
     if (fileInputRef.current) {
@@ -147,6 +152,9 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
 
       if (imageFile) {
         formData.append('image', imageFile);
+      }
+      if (profileImageCleared && isEdit) {
+        formData.append('removeProfileImage', 'true');
       }
 
       if (isEdit && initialData) {
@@ -215,7 +223,7 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
                     <button
                       type="button"
                       className="admin-btn admin-btn-secondary admin-btn-sm"
-                      onClick={clearImage}
+                      onClick={() => setRemovePhotoOpen(true)}
                     >
                       Remove
                     </button>
@@ -321,6 +329,20 @@ export function AuthorForm({ initialData, returnTo }: AuthorFormProps) {
           onCropComplete={handleCropComplete}
         />
       )}
+
+      <DeleteDialog
+        open={removePhotoOpen}
+        title="Remove profile photo"
+        description="Are you sure you want to remove this profile picture?"
+        confirmLabel="Remove"
+        loadingLabel="Removing…"
+        variant="warning"
+        onClose={() => setRemovePhotoOpen(false)}
+        onConfirm={() => {
+          clearImage();
+          setRemovePhotoOpen(false);
+        }}
+      />
 
       <div className="admin-form-actions">
         <button

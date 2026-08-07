@@ -24,7 +24,12 @@ export const createAuthorBodySchema = z.object({
   // profileImageUrl will be populated by the file upload middleware if provided
 });
 
-export const updateAuthorBodySchema = createAuthorBodySchema.partial();
+export const updateAuthorBodySchema = createAuthorBodySchema.partial().extend({
+  removeProfileImage: z.preprocess(
+    (value) => value === 'true' || value === true,
+    z.boolean().optional(),
+  ),
+});
 
 export const authorIdParamSchema = z.object({
   id: z.coerce.number().int().positive(),

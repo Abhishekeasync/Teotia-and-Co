@@ -94,12 +94,15 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
   const [availableAuthors, setAvailableAuthors] = useState<AuthorPickerAuthor[]>([]);
   const [authorsLoading, setAuthorsLoading] = useState(false);
   const [featuredFile, setFeaturedFile] = useState<File | null>(null);
+  const [featuredImageCleared, setFeaturedImageCleared] = useState(false);
+  const featuredFileInputRef = useRef<HTMLInputElement>(null);
   const [ogFile, setOgFile] = useState<File | null>(null);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>(
     initial?.galleryImages ?? []
   );
   const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [saving, setSaving] = useState(false);
+  const [savingTarget, setSavingTarget] = useState<'draft' | 'primary' | null>(null);
+  const savingRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
 
   const parsedTags = useMemo(
@@ -116,9 +119,18 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     initial?.categoryName;
 
   const featuredPreviewUrl = useMemo(() => {
+    if (featuredImageCleared) return null;
     if (featuredFile) return URL.createObjectURL(featuredFile);
     return initial?.featuredImageUrl ?? null;
-  }, [featuredFile, initial?.featuredImageUrl]);
+  }, [featuredFile, featuredImageCleared, initial?.featuredImageUrl]);
+
+  const clearFeaturedImage = () => {
+    setFeaturedFile(null);
+    setFeaturedImageCleared(true);
+    if (featuredFileInputRef.current) {
+      featuredFileInputRef.current.value = '';
+    }
+  };
 
   const buildDraftSnapshot = useCallback((): BlogDraftSnapshot => ({
     heading,
@@ -409,6 +421,9 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     if (effectivePublishType === 'scheduled' && scheduledPublishAt) {
       formData.append('scheduledPublishAt', new Date(scheduledPublishAt).toISOString());
     }
+    if (featuredImageCleared && isEdit) {
+      formData.append('removeFeaturedImage', 'true');
+    }
     if (featuredFile) formData.append('featuredImage', featuredFile);
     if (ogFile) formData.append('ogImage', ogFile);
 
@@ -441,8 +456,13 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     return editing ? 'Blog updated' : 'Blog saved as draft';
   };
 
-  const save = async (publishTypeOverride?: typeof publishType) => {
-    const effectivePublishType = publishTypeOverride ?? publishType;
+  const save = async (
+    publishTypeOverride: typeof publishType,
+    target: 'draft' | 'primary',
+  ) => {
+    if (savingRef.current) return;
+
+    const effectivePublishType = publishTypeOverride;
 
     if (!heading.trim() || !shortDescription.trim() || !body.trim()) {
       toast.error('Heading, description, and body are required');
@@ -468,7 +488,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     if (!validateImageFile(featuredFile, 'Featured image')) return;
     if (!validateImageFile(ogFile, 'OG image')) return;
 
-    setSaving(true);
+    savingRef.current = true;
+    setSavingTarget(target);
     try {
       const formData = buildFormData(publishTypeOverride);
 
@@ -485,17 +506,17 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save blog');
     } finally {
-      setSaving(false);
+      savingRef.current = false;
+      setSavingTarget(null);
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
-    save('draft');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="admin-form">
+    <form onSubmit={handleFormSubmit} className="admin-form" noValidate>
       <div className="admin-form-grid">
         <div className="admin-field">
           <label htmlFor="heading">Heading</label>
@@ -690,16 +711,31 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
           <label htmlFor="featuredImage">Featured image</label>
           <input
             id="featuredImage"
+            ref={featuredFileInputRef}
             type="file"
             accept="image/jpeg,image/jpg,image/png,image/webp"
-            onChange={(e) => setFeaturedFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              const file = e.target.files?.[0] ?? null;
+              setFeaturedFile(file);
+              if (file) setFeaturedImageCleared(false);
+            }}
           />
           {featuredPreviewUrl && (
-            <img
-              src={featuredPreviewUrl}
-              alt="Featured preview"
-              className="admin-image-preview"
-            />
+            <div className="admin-featured-preview-wrap">
+              <img
+                src={featuredPreviewUrl}
+                alt="Featured preview"
+                className="admin-image-preview"
+              />
+              <button
+                type="button"
+                className="admin-gallery-remove"
+                onClick={clearFeaturedImage}
+                aria-label="Remove featured image"
+              >
+                ×
+              </button>
+            </div>
           )}
         </div>
 
@@ -756,23 +792,31 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
 
       <div className="admin-form-actions">
         <button
-          type="submit"
+          type="button"
           className="admin-btn admin-btn-secondary"
-          disabled={saving}
+          disabled={savingTarget !== null}
+          onClick={() => save('draft', 'draft')}
         >
-          {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Save draft'}
+          {savingTarget === 'draft' ? 'Saving…' : isEdit ? 'Save changes' : 'Save draft'}
         </button>
         <button
           type="button"
           className="admin-btn admin-btn-primary"
-          disabled={saving}
-          onClick={() => save()}
+          disabled={savingTarget !== null}
+          onClick={() => save(publishType, 'primary')}
         >
-          {saving ? 'Saving…' : (publishType === 'publish_now' ? 'Save & Publish' : (publishType === 'scheduled' ? 'Save & Schedule' : 'Save changes'))}
+          {savingTarget === 'primary'
+            ? 'Saving…'
+            : publishType === 'publish_now'
+              ? 'Save & Publish'
+              : publishType === 'scheduled'
+                ? 'Save & Schedule'
+                : 'Save changes'}
         </button>
         <button
           type="button"
           className="admin-btn admin-btn-secondary"
+          disabled={savingTarget !== null}
           onClick={() => {
             clearBlogDraft(blogId);
             navigateWithoutGuard('/admin/blogs');

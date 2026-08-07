@@ -15,7 +15,9 @@ export type CreateAuthorInput = {
   linkedinUrl?: string | null;
 };
 
-export type UpdateAuthorInput = Partial<CreateAuthorInput>;
+export type UpdateAuthorInput = Partial<CreateAuthorInput> & {
+  removeProfileImage?: boolean;
+};
 
 export class AuthorService {
   constructor(private readonly authorRepository = new AuthorRepository()) {}
@@ -81,6 +83,11 @@ export class AuthorService {
         await deleteBlogImageByUrl(existing.profileImageUrl);
       }
       patch.profileImageUrl = newUrl;
+    } else if (input.removeProfileImage) {
+      if (existing.profileImageUrl) {
+        await deleteBlogImageByUrl(existing.profileImageUrl);
+      }
+      patch.profileImageUrl = null;
     }
 
     await this.authorRepository.update(id, patch);

@@ -1765,10 +1765,36 @@
 }
 
 .admin-image-preview {
-  margin-top: 0.5rem;
+  display: block;
   max-width: 200px;
   border-radius: var(--admin-radius-sm);
   border: 1px solid var(--admin-border);
+}
+
+.admin-featured-preview-wrap {
+  position: relative;
+  display: block;
+  width: 200px;
+  margin-top: 0.5rem;
+  border-radius: var(--admin-radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-bg-subtle, #f8f9fc);
+}
+
+.admin-featured-preview-wrap .admin-image-preview {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.admin-featured-preview-wrap .admin-gallery-remove {
+  top: 6px;
+  right: 6px;
 }
 
 .delete-dialog-backdrop {

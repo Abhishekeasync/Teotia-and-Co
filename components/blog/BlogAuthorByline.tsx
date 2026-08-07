@@ -7,6 +7,10 @@ export function authorProfileHref(slug: string): string {
   return `/authors/details/${slug}`;
 }
 
+export function authorBlogFilterHref(slug: string): string {
+  return `/blog?author=${encodeURIComponent(slug)}`;
+}
+
 type BlogAuthorBylineProps = {
   author: string;
   authorAvatar: string;
@@ -49,7 +53,7 @@ export function BlogAuthorByline({
         <div className="min-w-0">
           {resolved.length === 1 ? (
             <>
-              <Link href={authorProfileHref(primary.slug)} className={`${nameClassName} truncate block`}>
+              <Link href={authorBlogFilterHref(primary.slug)} className={`${nameClassName} truncate block`}>
                 {primary.name}
               </Link>
               {showDesignation && primary.designation && (
@@ -62,7 +66,7 @@ export function BlogAuthorByline({
                 <span key={profile.id}>
                   {index > 0 && <span className="text-gray-400 font-normal">, </span>}
                   <Link
-                    href={authorProfileHref(profile.slug)}
+                    href={authorBlogFilterHref(profile.slug)}
                     className="hover:text-brand hover:underline underline-offset-2"
                   >
                     {profile.name}

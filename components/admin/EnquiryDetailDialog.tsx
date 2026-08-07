@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { parseConsultationMessage } from '@/lib/consultation';
 import { ApiEnquiry } from '@/lib/api/types';
 
 type EnquiryDetailDialogProps = {
@@ -35,6 +36,8 @@ export function EnquiryDetailDialog({
   }, [enquiry, loading, onClose]);
 
   if (!enquiry) return null;
+
+  const { body: messageBody } = parseConsultationMessage(enquiry.message);
 
   return (
     <div
@@ -89,7 +92,7 @@ export function EnquiryDetailDialog({
 
         <div className="enquiry-detail-message">
           <span className="enquiry-detail-label">Message</span>
-          <div className="enquiry-detail-message-box">{enquiry.message}</div>
+          <div className="enquiry-detail-message-box">{messageBody}</div>
         </div>
 
         <div className="enquiry-detail-footer">

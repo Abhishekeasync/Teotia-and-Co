@@ -57,7 +57,11 @@ export function AdminAction({
       type="button"
       className={className}
       disabled={disabled || loading}
-      onClick={onClick}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onClick?.();
+      }}
       aria-label={label}
       title={label}
     >
