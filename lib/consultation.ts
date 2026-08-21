@@ -1,17 +1,22 @@
 export const CONSULTATION_INTENT = 'consultation';
-export const DEFAULT_CONSULTATION_SERVICE = 'Financial Consulting';
+export const DEFAULT_CONSULTATION_SERVICE =
+  'Taxation, Accounting & Compliance Support';
 export const CONSULTATION_SUBJECT = 'Free Consultation Request';
 export const CONSULTATION_MESSAGE_PLACEHOLDER =
   'Tell us about your business and what you would like to discuss during your free consultation...';
 
 /** Maps frontend service page slugs to backend enquiry service types. */
 const SERVICE_SLUG_TO_TYPE: Record<string, string> = {
-  'tax-planning-filing': 'Tax Planning & Filing',
-  'business-accounting': 'Accounting & Bookkeeping',
-  'payroll-management': 'Financial Consulting',
-  'audit-assurance': 'Audit Services',
-  'financial-advisory': 'Financial Consulting',
-  'management-consulting': 'Financial Consulting',
+  'company-incorporation': 'Company Incorporation & Business Setup Services',
+  'corporate-secretarial': 'Corporate Secretarial Compliance & Advisory',
+  'fdi-fema-advisory': 'FDI, FEMA & Cross-Border Investment Advisory',
+  'regulatory-approvals': 'Regulatory Approvals & Government Liaison',
+  'ma-transaction-advisory': 'M&A and Transaction Advisory Services',
+  'contracts-agreements': 'Contracts & Commercial Agreements',
+  'startup-msme-advisory': 'Startup, MSME & Business Growth Advisory',
+  'ipr-protection': 'IPR Protection Services',
+  'taxation-accounting': 'Taxation, Accounting & Compliance Support',
+  'corporate-restructuring': 'Corporate Restructuring, Due Diligence',
 };
 
 export type ConsultationParams = {

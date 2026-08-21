@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import CtaBanner from '@/components/CtaBanner';
+import TrustSection from '@/components/TrustSection';
 import ServiceCheckpoints from '@/components/ServiceCheckpoints';
 import {
   HeroReveal,
@@ -106,77 +107,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* WHY TRUST US */}
-      <section className="section section-gray">
-        <div className="trust">
-          <RevealText as="h2">Why Businesses Trust Us With Their Finances</RevealText>
-          <RevealText as="p" className="trust-sub" delay={0.08}>
-            Reliable, accurate, and expert accounting solutions that make your business run smoothly.
-          </RevealText>
-          <Stagger className="trust-grid">
-            <StaggerItem className="trust-card">
-              <div className="trust-icon">
-                <Image
-                  src="/assets/images/static.wixstatic.com/fb4679_bfd7e9f5379042f1b9bdbe57ee7504c0-063527ce46.svg"
-                  alt=""
-                  width={59}
-                  height={57}
-                />
-              </div>
-              <h3>Proven Success</h3>
-              <ul className="trust-bullets">
-                <li>99% Client Satisfaction Rate</li>
-                <li>Consistently Accurate for Results this.</li>
-              </ul>
-            </StaggerItem>
-            <StaggerItem className="trust-card">
-              <div className="trust-icon">
-                <Image
-                  src="/assets/images/static.wixstatic.com/fb4679_21b8b39d9bab4c24abb9223f82b1466f-7eef7ba366.svg"
-                  alt=""
-                  width={68}
-                  height={68}
-                />
-              </div>
-              <h3>Expert Guidance</h3>
-              <ul className="trust-bullets">
-                <li>10+ Years of CPA Experience</li>
-                <li>Expert Advice Tailored for Business.</li>
-              </ul>
-            </StaggerItem>
-            <StaggerItem className="trust-card">
-              <div className="trust-icon">
-                <Image
-                  src="/assets/images/static.wixstatic.com/fb4679_14fee24df05b43439f902b67dd58a426-76ccfa920d.svg"
-                  alt=""
-                  width={68}
-                  height={68}
-                />
-              </div>
-              <h3>Timely Solutions</h3>
-              <ul className="trust-bullets">
-                <li>100% On-Time Filing &amp; Reporting</li>
-                <li>Never miss a deadline, compliant.</li>
-              </ul>
-            </StaggerItem>
-            <StaggerItem className="trust-card">
-              <div className="trust-icon">
-                <Image
-                  src="/assets/images/static.wixstatic.com/fb4679_c98be4ef1e154770b674da71b79e6054-9989048e1e.svg"
-                  alt=""
-                  width={68}
-                  height={68}
-                />
-              </div>
-              <h3>Fully Transparent</h3>
-              <ul className="trust-bullets">
-                <li>Clear &amp; Simple Financial Insights</li>
-                <li>No hidden surprises, full clarity.</li>
-              </ul>
-            </StaggerItem>
-          </Stagger>
-        </div>
-      </section>
+      <TrustSection />
 
       <CtaBanner />
     </>

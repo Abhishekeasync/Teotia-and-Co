@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import NewsletterForm from '@/components/NewsletterForm';
 import { buildConsultationUrl } from '@/lib/consultation';
+import { services } from '@/lib/services';
 import { SITE_CONTACT } from '@/lib/site';
 import './header-footer.css';
 
@@ -22,12 +23,11 @@ export default function Footer() {
         </div>
         <div className="footer-col">
           <h4>Services</h4>
-          <Link href="/services/tax-planning-filing">Tax Planning &amp; Filing</Link>
-          <Link href="/services/business-accounting">Business Accounting</Link>
-          <Link href="/services/payroll-management">Payroll Management</Link>
-          <Link href="/services/audit-assurance">Audit &amp; Assurance</Link>
-          <Link href="/services/financial-advisory">Financial Advisory</Link>
-          <Link href="/services/management-consulting">Management Consulting</Link>
+          {services.map((service) => (
+            <Link key={service.slug} href={`/services/${service.slug}`}>
+              {service.title}
+            </Link>
+          ))}
         </div>
         <div className="footer-col">
           <h4>Quick Links</h4>
