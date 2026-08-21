@@ -5,14 +5,16 @@ import { z } from 'zod';
  * These appear as dropdown options in the contact form.
  */
 export const SERVICE_TYPES = [
-  'Tax Planning & Filing',
-  'Business Registration',
-  'GST Services',
-  'Accounting & Bookkeeping',
-  'Audit Services',
-  'Financial Consulting',
-  'Compliance Management',
-  'Legal Advisory',
+  'Company Incorporation & Business Setup Services',
+  'Corporate Secretarial Compliance & Advisory',
+  'FDI, FEMA & Cross-Border Investment Advisory',
+  'Regulatory Approvals & Government Liaison',
+  'M&A and Transaction Advisory Services',
+  'Contracts & Commercial Agreements',
+  'Startup, MSME & Business Growth Advisory',
+  'IPR Protection Services',
+  'Taxation, Accounting & Compliance Support',
+  'Corporate Restructuring, Due Diligence',
   'Other',
 ] as const;
 

@@ -8,7 +8,9 @@ export const metadata: Metadata = {
   title: "TEOTIA & CO. | Chartered Accountants",
   description: "Expert guidance in domestic and international taxation, audit & assurance, and regulatory compliance",
   icons: {
-    icon: "/assets/images/www.wix.com/favicon-3fd805aa90.ico",
+    icon: "/assets/images/favicon.png?v=2",
+    shortcut: "/assets/images/favicon.png?v=2",
+    apple: "/assets/images/favicon.png?v=2",
   },
 };
 
