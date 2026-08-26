@@ -202,6 +202,26 @@ export const publicApi = {
         body: JSON.stringify(data),
       }),
   },
+
+  // Job APIs
+  jobs: {
+    list: (params?: { page?: number; limit?: number }) => {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.limit) query.set('limit', params.limit.toString());
+
+      return fetchApi(`/jobs?${query.toString()}`, { next: { revalidate: 60 } });
+    },
+
+    getBySlug: (slug: string) => fetchApi(`/jobs/${slug}`, { next: { revalidate: 60 } }),
+
+    apply: (jobId: number, data: FormData) =>
+      fetchApi(`/jobs/${jobId}/apply`, {
+        method: 'POST',
+        body: data,
+        headers: {}, // Let browser set Content-Type for FormData
+      }),
+  },
 };
 
 /**
@@ -445,5 +465,119 @@ export const adminApi = {
         method: 'DELETE',
         requireAuth: true,
       }),
+  },
+
+  // Job APIs
+  jobs: {
+    list: (params?: { page?: number; limit?: number }) => {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.limit) query.set('limit', params.limit.toString());
+
+      return fetchApi(`/admin/jobs/list-all-jobs?${query.toString()}`, {
+        requireAuth: true,
+      });
+    },
+
+    getById: (id: number) =>
+      fetchApi(`/admin/jobs/job-detail/${id}`, { requireAuth: true }),
+
+    create: (data: any) =>
+      fetchApi('/admin/jobs/create-job', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        requireAuth: true,
+      }),
+
+    update: (id: number, data: any) =>
+      fetchApi(`/admin/jobs/update-job/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+        requireAuth: true,
+      }),
+
+    updateStatus: (id: number, status: string) =>
+      fetchApi(`/admin/jobs/update-job-status/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+        requireAuth: true,
+      }),
+
+    delete: (id: number) =>
+      fetchApi(`/admin/jobs/delete-job/${id}`, {
+        method: 'DELETE',
+        requireAuth: true,
+      }),
+  },
+
+  // Job Application APIs
+  applications: {
+    list: (
+      params?: {
+        page?: number;
+        limit?: number;
+        jobId?: number;
+        search?: string;
+        status?: string;
+        pipeline?: string;
+        dateFrom?: string;
+        dateTo?: string;
+      },
+      init?: RequestInit,
+    ) => {
+      const query = new URLSearchParams();
+      if (params?.page) query.set('page', params.page.toString());
+      if (params?.limit) query.set('limit', params.limit.toString());
+      if (params?.jobId) query.set('jobId', params.jobId.toString());
+      if (params?.search) query.set('search', params.search);
+      if (params?.status) query.set('status', params.status);
+      if (params?.pipeline) query.set('pipeline', params.pipeline);
+      if (params?.dateFrom) query.set('dateFrom', params.dateFrom);
+      if (params?.dateTo) query.set('dateTo', params.dateTo);
+
+      return fetchApi(`/admin/applications/list-all-applications?${query.toString()}`, {
+        requireAuth: true,
+        ...init,
+      });
+    },
+
+    summaries: (init?: RequestInit) =>
+      fetchApi('/admin/applications/job-summaries', {
+        requireAuth: true,
+        ...init,
+      }),
+
+    getById: (id: number, init?: RequestInit) =>
+      fetchApi(`/admin/applications/application-detail/${id}`, {
+        requireAuth: true,
+        ...init,
+      }),
+
+    updateStatus: (id: number, data: { status: string; reason?: string | null }) =>
+      fetchApi(`/admin/applications/update-application-status/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+        requireAuth: true,
+      }),
+
+    delete: (id: number) =>
+      fetchApi(`/admin/applications/delete-application/${id}`, {
+        method: 'DELETE',
+        requireAuth: true,
+      }),
+
+    updateNotes: (id: number, adminNotes: string | null) =>
+      fetchApi(`/admin/applications/update-application-notes/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ adminNotes }),
+        requireAuth: true,
+      }),
+
+    getResumeUrl: (id: number, download?: boolean) => {
+      const query = download ? '?download=1' : '';
+      return fetchApi(`/admin/applications/application-resume-url/${id}${query}`, {
+        requireAuth: true,
+      });
+    },
   },
 };

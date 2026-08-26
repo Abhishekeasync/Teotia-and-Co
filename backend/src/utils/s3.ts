@@ -1,4 +1,5 @@
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { awsConfig } from '../config/aws';
 import { HTTP_STATUS, UPLOAD_ALLOWED_MIME, UPLOAD_MAX_BYTES } from '../constants';
@@ -20,6 +21,7 @@ const MIME_EXTENSION: Record<string, string> = {
 export const S3_PREFIX = {
   blogs: 'blogs',
   avatars: 'avatars',
+  resumes: 'resumes',
 } as const;
 
 export function assertImageUpload(file: Express.Multer.File | undefined): Express.Multer.File {
@@ -118,4 +120,69 @@ export async function deleteBlogImageByUrl(url: string | null | undefined): Prom
       Key: key,
     }),
   );
+}
+
+const RESUME_MIN_BYTES = 10 * 1024;
+const RESUME_MAX_BYTES = 5 * 1024 * 1024;
+
+export function assertResumeUpload(file: Express.Multer.File | undefined): Express.Multer.File {
+  if (!file || !file.buffer?.length) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Resume file is required');
+  }
+  if (file.size < RESUME_MIN_BYTES) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Resume file is too small. Minimum size is 10KB.');
+  }
+  if (file.size > RESUME_MAX_BYTES) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Resume file too large. Max 5MB allowed.');
+  }
+  const mime = file.mimetype.toLowerCase();
+  const name = (file.originalname || '').toLowerCase();
+  const hasPdfExtension = name.endsWith('.pdf');
+  if (mime !== 'application/pdf' && !hasPdfExtension) {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Invalid file type. Only PDF is accepted.');
+  }
+  const signature = file.buffer.subarray(0, 4).toString('latin1');
+  if (signature !== '%PDF') {
+    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Invalid resume file. Please upload a valid PDF.');
+  }
+  return file;
+}
+
+export async function uploadResume(file: Express.Multer.File): Promise<string> {
+  const valid = assertResumeUpload(file);
+  const { client, bucket } = requireS3();
+  const key = `${S3_PREFIX.resumes}/${randomUUID()}.pdf`;
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: valid.buffer,
+      ContentType: valid.mimetype,
+    }),
+  );
+
+  return key; // return the S3 key, not the public URL
+}
+
+function safeResumeFilename(filename: string | undefined): string {
+  const base = (filename ?? 'resume').replace(/[/\\?%*:|"<>]/g, '').trim() || 'resume';
+  return base.toLowerCase().endsWith('.pdf') ? base : `${base}.pdf`;
+}
+
+export async function getPresignedResumeUrl(
+  key: string,
+  options?: { download?: boolean; filename?: string },
+): Promise<string> {
+  const { client, bucket } = requireS3();
+  const filename = safeResumeFilename(options?.filename);
+  const disposition = `${options?.download ? 'attachment' : 'inline'}; filename="${filename}"`;
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ResponseContentType: 'application/pdf',
+    ResponseContentDisposition: disposition,
+  });
+  // URL expires in 15 minutes
+  return getSignedUrl(client, command, { expiresIn: 15 * 60 });
 }

@@ -26,6 +26,7 @@ export default function Header() {
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About Us' },
     { href: '/services', label: 'Services' },
+    { href: '/careers', label: 'Careers' },
     { href: '/contact', label: 'Contact' },
     { href: '/blog', label: 'Blog' },
   ];
@@ -40,25 +41,32 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="pill-logo">
             <Image
-              src="/assets/images/Teotia-and-co-Logo.png"
-              alt="TEOTIA & CO. Logo"
+              src="/assets/images/Logo.png"
+              alt="TEOTIA &amp; CO. Logo"
               className="logo"
-              width={120}
-              height={41}
+              width={160}
+              height={54}
+              priority
             />
           </Link>
 
           {/* Nav Links */}
           <nav className="pill-nav" aria-label="Main navigation">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`pill-link ${pathname === link.href ? 'pill-link--active' : ''}`}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === '/'
+                  ? pathname === '/'
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`pill-link ${isActive ? 'pill-link--active' : ''}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* CTA */}
@@ -93,16 +101,22 @@ export default function Header() {
         >
           &times;
         </button>
-        {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={pathname === link.href ? 'active-mobile-link' : ''}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            {link.label}
-          </Link>
-        ))}
+        {navLinks.map((link) => {
+          const isActive =
+            link.href === '/'
+              ? pathname === '/'
+              : pathname === link.href || pathname.startsWith(`${link.href}/`);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={isActive ? 'active-mobile-link' : ''}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
         <Link
           href={consultationHref}
           className="btn-consult"

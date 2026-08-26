@@ -13,10 +13,14 @@ import {
   IconLogout,
   IconMail,
   IconUsers,
+  IconBriefcase,
+  IconFileText,
 } from './AdminIcons';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', exact: true, Icon: IconDashboard },
+  { href: '/admin/jobs', label: 'Jobs', Icon: IconBriefcase },
+  { href: '/admin/applications', label: 'Applications', Icon: IconFileText },
   { href: '/admin/blogs', label: 'Blogs', Icon: IconBlog },
   { href: '/admin/authors', label: 'Authors', Icon: IconAuthor },
   { href: '/admin/comments', label: 'Comments', Icon: IconComment },
