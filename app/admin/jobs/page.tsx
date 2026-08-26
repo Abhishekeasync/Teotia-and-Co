@@ -61,7 +61,7 @@ export default function AdminJobsPage() {
     try {
       const newStatus = job.status === 'published' ? 'draft' : 'published';
       await adminApi.jobs.updateStatus(job.id, newStatus);
-      toast.success(`Job ${newStatus === 'published' ? 'published' : 'unpublished'}`);
+      toast.success(newStatus === 'published' ? 'Job Published' : 'Job Unpublished');
       await loadJobs(page);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action failed');

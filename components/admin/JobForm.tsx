@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/toast';
+import { scrollToFirstInvalidField } from '@/lib/toast-validation';
 
 import { adminApi } from '@/lib/api/client';
 import { ApiJob } from '@/lib/api/types';
@@ -11,6 +12,15 @@ import { IconSpinner } from './AdminIcons';
 type JobFormProps = {
   initialData?: ApiJob | null;
 };
+
+type JobFieldErrors = {
+  title?: string;
+  description?: string;
+};
+
+const JOB_FIELD_ORDER = ['title', 'description'] as const;
+
+const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship'] as const;
 
 export function JobForm({ initialData }: JobFormProps) {
   const router = useRouter();
@@ -37,15 +47,35 @@ export function JobForm({ initialData }: JobFormProps) {
   );
 
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<JobFieldErrors>({});
+
+  const clearError = (field: keyof JobFieldErrors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
   const save = async (e?: FormEvent) => {
     if (e) e.preventDefault();
     if (saving) return;
 
-    if (!title.trim() || !description.trim()) {
-      toast.error('Title and description are required');
+    const nextErrors: JobFieldErrors = {};
+    if (!title.trim()) nextErrors.title = 'Please enter the job title.';
+    const trimmedDescription = description.trim();
+    if (!trimmedDescription) {
+      nextErrors.description = 'Please enter the job description.';
+    } else if (trimmedDescription.length < 20) {
+      nextErrors.description = 'Job description must be at least 20 characters.';
+    }
+
+    if (nextErrors.title || nextErrors.description) {
+      setErrors(nextErrors);
+      toast.error(nextErrors.title ?? nextErrors.description ?? '');
+      scrollToFirstInvalidField(nextErrors, JOB_FIELD_ORDER);
       return;
     }
+
+    setErrors({});
 
     setSaving(true);
     try {
@@ -58,7 +88,7 @@ export function JobForm({ initialData }: JobFormProps) {
         experienceRequired: experienceRequired.trim() || null,
         salaryCtc: salaryCtc.trim() || null,
         numberOfOpenings: numberOfOpenings ? parseInt(numberOfOpenings, 10) : null,
-        description,
+        description: trimmedDescription,
         responsibilities: responsibilities.trim() || null,
         requirements: requirements.trim() || null,
         requiredSkills: requiredSkills.trim() || null,
@@ -90,10 +120,20 @@ export function JobForm({ initialData }: JobFormProps) {
           <input
             id="title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
+            onChange={(e) => {
+              setTitle(e.target.value);
+              clearError('title');
+            }}
+            aria-invalid={errors.title ? true : undefined}
+            aria-describedby={errors.title ? 'job-title-error' : undefined}
+            className={errors.title ? 'field-invalid' : undefined}
             placeholder="e.g. Senior Corporate Lawyer"
           />
+          {errors.title && (
+            <span id="job-title-error" className="admin-field-error">
+              {errors.title}
+            </span>
+          )}
         </div>
 
         <div className="admin-field">
@@ -132,12 +172,22 @@ export function JobForm({ initialData }: JobFormProps) {
 
         <div className="admin-field">
           <label htmlFor="employmentType">Employment Type</label>
-          <input
+          <select
             id="employmentType"
             value={employmentType}
             onChange={(e) => setEmploymentType(e.target.value)}
-            placeholder="e.g. Full-time, Part-time, Contract"
-          />
+          >
+            <option value="">Select employment type</option>
+            {EMPLOYMENT_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+            {employmentType &&
+              !(EMPLOYMENT_TYPES as readonly string[]).includes(employmentType) && (
+                <option value={employmentType}>{employmentType}</option>
+              )}
+          </select>
         </div>
 
         <div className="admin-field">
@@ -214,10 +264,21 @@ export function JobForm({ initialData }: JobFormProps) {
         <textarea
           id="description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            clearError('description');
+          }}
           rows={6}
+          aria-invalid={errors.description ? true : undefined}
+          aria-describedby={errors.description ? 'job-description-error' : undefined}
+          className={errors.description ? 'field-invalid' : undefined}
           placeholder="Detailed job description..."
         />
+        {errors.description && (
+          <span id="job-description-error" className="admin-field-error">
+            {errors.description}
+          </span>
+        )}
       </div>
 
       <div className="admin-field" style={{ marginTop: '2rem' }}>

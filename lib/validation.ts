@@ -1,9 +1,10 @@
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX =
+  /^[A-Za-z0-9](?:[A-Za-z0-9._%+-]*[A-Za-z0-9])?@[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$/;
 
 export function validateName(name: string): string | null {
   const trimmed = name.trim();
   if (!trimmed) return 'Name is required';
-  if (trimmed.length < 2) return 'Name must be at least 2 characters';
+  if (trimmed.length < 3) return 'Name must be at least 3 characters.';
   if (trimmed.length > 255) return 'Name must be less than 255 characters';
   if (!/^[a-zA-Z\s.'-]+$/.test(trimmed)) {
     return 'Name can only contain letters, spaces, and basic punctuation';
@@ -13,9 +14,18 @@ export function validateName(name: string): string | null {
 
 export function validateEmail(email: string): string | null {
   const trimmed = email.trim();
-  if (!trimmed) return 'Email is required';
+  if (!trimmed) return 'Please enter a valid email address.';
   if (trimmed.length > 255) return 'Email must be less than 255 characters';
-  if (!EMAIL_REGEX.test(trimmed)) return 'Please enter a valid email address';
+  if (
+    trimmed.includes('..') ||
+    trimmed.startsWith('.') ||
+    trimmed.endsWith('.') ||
+    trimmed.includes('@.') ||
+    trimmed.includes('.@') ||
+    !EMAIL_REGEX.test(trimmed)
+  ) {
+    return 'Please enter a valid email address.';
+  }
   return null;
 }
 
@@ -39,18 +49,41 @@ export function validatePhone(phone: string): string | null {
 
 export function validateLocation(location: string): string | null {
   const trimmed = location.trim();
-  if (!trimmed) return 'Current location is required';
-  if (trimmed.length < 2) return 'Enter a valid location';
+  if (!trimmed) return 'Please enter your current location.';
+  if (trimmed.length < 3) return 'Please enter a valid current location.';
   if (trimmed.length > 255) return 'Location must be less than 255 characters';
   return null;
 }
 
+export function sanitizeExperienceYearsInput(value: string): string {
+  const cleaned = value.replace(/[^\d.]/g, '');
+  if (!cleaned) return '';
+
+  const dotIndex = cleaned.indexOf('.');
+  let whole = dotIndex === -1 ? cleaned : cleaned.slice(0, dotIndex);
+  const hasDot = dotIndex !== -1;
+  const frac = hasDot
+    ? cleaned.slice(dotIndex + 1).replace(/\./g, '').slice(0, 1)
+    : '';
+
+  whole = whole.replace(/^0+(?=\d)/, '').slice(0, 2);
+  if (hasDot) {
+    return `${whole || '0'}.${frac}`;
+  }
+  return whole;
+}
+
 export function validateExperienceYears(value: string): string | null {
-  const trimmed = value.trim();
+  const trimmed = value.trim().endsWith('.')
+    ? value.trim().slice(0, -1)
+    : value.trim();
   if (!trimmed) return 'Years of experience is required';
+  if (!/^\d{1,2}(\.\d)?$/.test(trimmed)) {
+    return 'Enter years of experience with at most one decimal place.';
+  }
   const n = Number(trimmed);
-  if (!Number.isFinite(n) || n < 0 || n > 60 || !/^\d+(\.\d{1,2})?$/.test(trimmed)) {
-    return 'Enter years of experience between 0 and 60';
+  if (!Number.isFinite(n) || n < 0 || n > 80) {
+    return 'Enter years of experience between 0 and 80.';
   }
   return null;
 }

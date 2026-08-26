@@ -488,6 +488,13 @@
   color: #1a1a2e;
 }
 
+.job-apply-form .form-group > label:not(.job-dropzone)::after,
+.job-apply-form .job-drop-label::after {
+  content: ' *';
+  color: #dc2626;
+  font-weight: 600;
+}
+
 .job-apply-form .form-group input {
   width: 100%;
   padding: 11px 13px;
