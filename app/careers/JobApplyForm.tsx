@@ -11,7 +11,14 @@ import {
 import { publicApi, ApiClientError } from '@/lib/api/client';
 import { ApiJob } from '@/lib/api/types';
 import { toast } from '@/lib/toast';
-import { validateName, validateEmail, validatePhone, validateLocation, validateExperienceYears } from '@/lib/validation';
+import {
+  validateName,
+  validateEmail,
+  validatePhone,
+  validateLocation,
+  validateExperienceYears,
+  sanitizeExperienceYearsInput,
+} from '@/lib/validation';
 
 const MAX_RESUME_SIZE = 5 * 1024 * 1024;
 const MIN_RESUME_SIZE = 10 * 1024;
@@ -56,6 +63,22 @@ export function JobApplyForm({ job }: Props) {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const handleExperienceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const nextValue = sanitizeExperienceYearsInput(e.target.value);
+    setFormData((prev) => ({ ...prev, experienceYears: nextValue }));
+    if (errors.experienceYears) {
+      setErrors((prev) => ({ ...prev, experienceYears: '' }));
+    }
+  };
+
+  const handleBlur = (
+    field: 'name' | 'email' | 'currentLocation' | 'experienceYears',
+    validator: (value: string) => string | null,
+  ) => {
+    const err = validator(formData[field]);
+    setErrors((prev) => ({ ...prev, [field]: err ?? '' }));
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -220,8 +243,10 @@ export function JobApplyForm({ job }: Props) {
               type="text"
               value={formData.name}
               onChange={handleChange}
+              onBlur={() => handleBlur('name', validateName)}
               placeholder="Rahul Sharma"
               maxLength={255}
+              minLength={3}
               autoComplete="name"
               required
               aria-required="true"
@@ -245,6 +270,7 @@ export function JobApplyForm({ job }: Props) {
               type="email"
               value={formData.email}
               onChange={handleChange}
+              onBlur={() => handleBlur('email', validateEmail)}
               placeholder="rahul@gmail.com"
               maxLength={255}
               autoComplete="email"
@@ -312,8 +338,10 @@ export function JobApplyForm({ job }: Props) {
               type="text"
               value={formData.currentLocation}
               onChange={handleChange}
+              onBlur={() => handleBlur('currentLocation', validateLocation)}
               placeholder="Noida"
               maxLength={255}
+              minLength={3}
               autoComplete="address-level2"
               required
               aria-required="true"
@@ -334,14 +362,14 @@ export function JobApplyForm({ job }: Props) {
               id="apply-experienceYears"
               ref={experienceRef}
               name="experienceYears"
-              type="number"
-              min="0"
-              max="60"
-              step="0.5"
+              type="text"
               inputMode="decimal"
+              pattern="[0-9]{1,2}(\.[0-9])?"
+              maxLength={4}
               value={formData.experienceYears}
-              onChange={handleChange}
-              placeholder="e.g. 3"
+              onChange={handleExperienceChange}
+              onBlur={() => handleBlur('experienceYears', validateExperienceYears)}
+              placeholder="e.g. 1.5"
               required
               aria-required="true"
               aria-invalid={errors.experienceYears ? true : undefined}

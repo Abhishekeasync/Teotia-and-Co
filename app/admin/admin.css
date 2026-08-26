@@ -820,6 +820,7 @@
 
 .admin-badge.rejected,
 .admin-badge.unsubscribed,
+.admin-badge.closed,
 .admin-badge-status-not_shortlisted,
 .admin-badge-status-withdrawn,
 .admin-badge-status-closed {
@@ -1219,6 +1220,20 @@
 
 .admin-field-hint a:hover {
   opacity: 0.8;
+}
+
+.admin-field-error {
+  display: block;
+  color: #b42318;
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.admin-field input.field-invalid:not([type='checkbox']):not([type='radio']):not([type='file']),
+.admin-field textarea.field-invalid {
+  border-color: #d92d20;
+  box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.12);
 }
 
 /* ── Checkbox groups (blog author picker, etc.) ── */
