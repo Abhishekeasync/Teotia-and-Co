@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "@tiptap/extension-color": "^3.29.2",
     "@tiptap/extension-highlight": "^3.29.2",
     "@tiptap/extension-image": "^3.29.2",

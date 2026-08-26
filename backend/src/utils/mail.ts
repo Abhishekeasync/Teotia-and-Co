@@ -380,3 +380,75 @@ export async function notifySubscribersOfNewPost(blog: {
     // Don't throw — this is a background operation; must not crash the server
   }
 }
+
+/** Notification to applicant that their job application was received. */
+export async function sendApplicationReceivedEmail(
+  to: string,
+  name: string,
+  jobTitle: string,
+): Promise<void> {
+  const subject = `Application Received: ${jobTitle}`;
+  const html = `
+    <p>Dear ${name},</p>
+    <p>Thank you for applying for the <strong>${jobTitle}</strong> position at TEOTIA &amp; CO.</p>
+    <p>We have successfully received your application and our team will review it shortly. If your profile matches our requirements, we will get in touch with you for the next steps.</p>
+    <p>Best regards,<br>TEOTIA &amp; CO. Team</p>
+  `;
+
+  const transport = getTransport();
+  if (!transport) {
+    if (isProduction) {
+      throw new Error('SMTP is not configured');
+    }
+    logger.warn('[MAIL] SMTP not configured — applicant email skipped (dev)', { to, jobTitle });
+    return;
+  }
+
+  await transport.sendMail({
+    from: mailConfig.defaultFrom,
+    to,
+    subject,
+    html,
+    text: `Dear ${name},\n\nThank you for applying for the ${jobTitle} position at TEOTIA & CO. We have successfully received your application.`,
+  });
+}
+
+/** Notification to admin that a new job application was submitted. */
+export async function sendNewApplicationAdminNotification(
+  jobTitle: string,
+  applicantName: string,
+  applicantEmail: string,
+): Promise<void> {
+  const adminEmail = env.ADMIN_NOTIFICATION_EMAIL || env.SEED_ADMIN_EMAIL;
+  if (!adminEmail) {
+    logger.warn('No admin email configured for application notifications');
+    return;
+  }
+
+  const subject = `New Job Application: ${jobTitle}`;
+  const html = `
+    <h3>New Job Application Received</h3>
+    <p><strong>Job:</strong> ${jobTitle}</p>
+    <p><strong>Applicant Name:</strong> ${applicantName}</p>
+    <p><strong>Applicant Email:</strong> <a href="mailto:${applicantEmail}">${applicantEmail}</a></p>
+    <p>Log in to the admin panel to review their full application and resume.</p>
+    <p>— TEOTIA &amp; CO. CMS</p>
+  `;
+
+  const transport = getTransport();
+  if (!transport) {
+    if (isProduction) {
+      throw new Error('SMTP is not configured');
+    }
+    logger.warn('SMTP not configured — application notification skipped (dev)', { jobTitle, applicantName });
+    return;
+  }
+
+  await transport.sendMail({
+    from: mailConfig.defaultFrom,
+    to: adminEmail,
+    subject,
+    html,
+    text: `New Job Application Received\nJob: ${jobTitle}\nApplicant: ${applicantName}\nEmail: ${applicantEmail}`,
+  });
+}

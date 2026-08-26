@@ -21,12 +21,38 @@ export function validateEmail(email: string): string | null {
 
 export function validatePhone(phone: string): string | null {
   const trimmed = phone.trim();
-  if (!trimmed) return 'Phone number is required';
+  if (!trimmed) return 'Mobile number is required';
   const normalized = trimmed.replace(/[\s\-()]/g, '');
-  if (/^\+91[6-9]\d{9}$/.test(normalized) || /^[6-9]\d{9}$/.test(normalized)) {
-    return null;
+  const local = normalized.startsWith('+91')
+    ? normalized.slice(3)
+    : normalized.startsWith('91') && normalized.length === 12
+      ? normalized.slice(2)
+      : normalized;
+  if (!/^\d{10}$/.test(local)) {
+    return 'Enter a 10-digit mobile number';
   }
-  return 'Please enter a valid 10-digit mobile number';
+  if (!/^[6-9]/.test(local)) {
+    return 'Indian mobile numbers start with 6, 7, 8, or 9';
+  }
+  return null;
+}
+
+export function validateLocation(location: string): string | null {
+  const trimmed = location.trim();
+  if (!trimmed) return 'Current location is required';
+  if (trimmed.length < 2) return 'Enter a valid location';
+  if (trimmed.length > 255) return 'Location must be less than 255 characters';
+  return null;
+}
+
+export function validateExperienceYears(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return 'Years of experience is required';
+  const n = Number(trimmed);
+  if (!Number.isFinite(n) || n < 0 || n > 60 || !/^\d+(\.\d{1,2})?$/.test(trimmed)) {
+    return 'Enter years of experience between 0 and 60';
+  }
+  return null;
 }
 
 export function validateComment(comment: string): string | null {
