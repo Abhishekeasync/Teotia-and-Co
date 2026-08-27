@@ -261,7 +261,7 @@ export class JobRepository {
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
-        `SELECT id FROM jobs WHERE slug = ? AND (? IS NULL OR id != ?) AND deleted_at IS NULL LIMIT 1`,
+        `SELECT id FROM jobs WHERE slug = ? AND (? IS NULL OR id != ?) LIMIT 1`,
         [slug, excludeId ?? null, excludeId ?? null],
       );
       return rows.length > 0;

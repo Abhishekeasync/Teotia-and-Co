@@ -121,9 +121,9 @@ export class BlogRepository {
     try {
       const params: unknown[] = [slug];
       let sql =
-        'SELECT id FROM blogs WHERE slug = ? AND deleted_at IS NULL LIMIT 1';
+        'SELECT id FROM blogs WHERE slug = ? LIMIT 1';
       if (excludeId !== undefined) {
-        sql = 'SELECT id FROM blogs WHERE slug = ? AND id <> ? AND deleted_at IS NULL LIMIT 1';
+        sql = 'SELECT id FROM blogs WHERE slug = ? AND id <> ? LIMIT 1';
         params.push(excludeId);
       }
       const [rows] = await connection.query<RowDataPacket[]>(sql, params);

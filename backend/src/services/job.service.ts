@@ -3,7 +3,8 @@ import { JobStatus, PublicJob, AdminJob, WorkMode } from '../interfaces/job.inte
 import { PaginationParams, buildPaginationMeta, PaginationMeta } from '../utils/pagination';
 import { ApiError } from '../utils/ApiError';
 import { HTTP_STATUS } from '../constants';
-import { slugify } from '../utils/slug';
+import { slugify, uniqueSlugFromHeading } from '../utils/slug';
+import { retryOnDuplicateKey } from '../utils/retry';
 
 export type CreateJobInput = {
   title: string;
@@ -28,36 +29,38 @@ export class JobService {
   private jobRepository = new JobRepository();
 
   async createJob(input: CreateJobInput): Promise<{ id: number; slug: string }> {
-    let slug = slugify(input.title);
-    
-    // Ensure slug is unique
-    let isTaken = await this.jobRepository.isSlugTaken(slug);
-    let counter = 1;
-    while (isTaken) {
-      slug = `${slugify(input.title)}-${counter}`;
-      isTaken = await this.jobRepository.isSlugTaken(slug);
-      counter++;
+    const base = slugify(input.title);
+    if (!base) {
+      throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Title must produce a valid slug');
     }
 
-    const id = await this.jobRepository.create({
-      title: input.title,
-      slug,
-      department: input.department,
-      location: input.location,
-      workMode: input.workMode,
-      employmentType: input.employmentType,
-      experienceRequired: input.experienceRequired,
-      salaryCtc: input.salaryCtc,
-      numberOfOpenings: input.numberOfOpenings,
-      description: input.description,
-      responsibilities: input.responsibilities,
-      requirements: input.requirements,
-      requiredSkills: input.requiredSkills,
-      status: input.status,
-      createdByAdminId: input.adminId,
-    });
+    // Retry slug allocation and creation to handle concurrent duplicate slug conflicts
+    return retryOnDuplicateKey(async () => {
+      const slug = await uniqueSlugFromHeading(input.title, async (candidateSlug) => {
+        const taken = await this.jobRepository.isSlugTaken(candidateSlug);
+        return !taken;
+      });
 
-    return { id, slug };
+      const id = await this.jobRepository.create({
+        title: input.title,
+        slug,
+        department: input.department,
+        location: input.location,
+        workMode: input.workMode,
+        employmentType: input.employmentType,
+        experienceRequired: input.experienceRequired,
+        salaryCtc: input.salaryCtc,
+        numberOfOpenings: input.numberOfOpenings,
+        description: input.description,
+        responsibilities: input.responsibilities,
+        requirements: input.requirements,
+        requiredSkills: input.requiredSkills,
+        status: input.status,
+        createdByAdminId: input.adminId,
+      });
+
+      return { id, slug };
+    });
   }
 
   async updateJob(id: number, input: UpdateJobInput): Promise<void> {
@@ -69,14 +72,15 @@ export class JobService {
     let slug = job.slug;
     // If title changed, update slug
     if (job.title !== input.title) {
-      slug = slugify(input.title);
-      let isTaken = await this.jobRepository.isSlugTaken(slug, id);
-      let counter = 1;
-      while (isTaken) {
-        slug = `${slugify(input.title)}-${counter}`;
-        isTaken = await this.jobRepository.isSlugTaken(slug, id);
-        counter++;
+      const base = slugify(input.title);
+      if (!base) {
+        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Title must produce a valid slug');
       }
+
+      slug = await uniqueSlugFromHeading(input.title, async (candidateSlug) => {
+        const taken = await this.jobRepository.isSlugTaken(candidateSlug, id);
+        return !taken;
+      });
     }
 
     await this.jobRepository.update(id, {

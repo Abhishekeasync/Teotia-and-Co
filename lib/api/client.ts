@@ -43,11 +43,46 @@ export class ApiClientError extends Error {
   }
 }
 
+function readString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
+/** Pull a user-facing message from either backend `{ message, errors }` or nested `{ error }`. */
+function getApiErrorMessage(data: unknown, fallback = 'Request failed'): string {
+  if (!data || typeof data !== 'object') return fallback;
+  const body = data as ApiError;
+
+  const topLevel = readString(body.message);
+  if (topLevel) return topLevel;
+
+  const nested = readString(body.error?.message);
+  if (nested) return nested;
+
+  const firstError = body.errors?.[0];
+  const fromErrors =
+    readString(firstError) ??
+    (firstError && typeof firstError === 'object'
+      ? readString((firstError as { message?: unknown }).message)
+      : null);
+  if (fromErrors) return fromErrors;
+
+  return fallback;
+}
+
+function getApiErrorDetails(data: unknown): unknown {
+  if (!data || typeof data !== 'object') return undefined;
+  const body = data as ApiError;
+  if (body.errors !== undefined) return body.errors;
+  return body.error?.details;
+}
+
 interface RequestOptions extends RequestInit {
   requireAuth?: boolean;
   /** Seconds to cache public GET responses via Next.js Data Cache. */
   revalidate?: number | false;
   cache?: RequestCache;
+  /** Next.js cache tags for on-demand invalidation via revalidateTag(). */
+  tags?: string[];
 }
 
 /**
@@ -58,7 +93,7 @@ async function fetchApi<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { requireAuth = false, revalidate, cache, ...fetchOptions } = options;
+  const { requireAuth = false, revalidate, cache, tags, ...fetchOptions } = options;
 
   const url = `${getApiUrl()}${endpoint}`;
   const isFormData = fetchOptions.body instanceof FormData;
@@ -70,23 +105,28 @@ async function fetchApi<T>(
   // Include cookies for authenticated requests
   const credentials = requireAuth ? 'include' : 'same-origin';
 
+  // Build the `next` option: tags enable on-demand revalidation via revalidateTag();
+  // revalidate sets a time-based fallback (still useful if tags are never busted).
+  const nextOption: { revalidate?: number | false; tags?: string[] } = {};
+  if (revalidate !== undefined) nextOption.revalidate = revalidate;
+  if (tags && tags.length > 0) nextOption.tags = tags;
+
   try {
     const response = await fetch(url, {
       ...fetchOptions,
       headers,
       credentials,
       ...(cache !== undefined ? { cache } : {}),
-      ...(revalidate !== undefined ? { next: { revalidate } } : {}),
+      ...(Object.keys(nextOption).length > 0 ? { next: nextOption } : {}),
     });
 
     const data = await response.json();
 
-    if (!response.ok) {
-      const error = data as ApiError;
+    if (!response.ok || (data && typeof data === 'object' && data.success === false)) {
       throw new ApiClientError(
         response.status,
-        error.error?.message || 'Request failed',
-        error.error?.details
+        getApiErrorMessage(data),
+        getApiErrorDetails(data)
       );
     }
 
@@ -134,12 +174,17 @@ export const publicApi = {
 
       const hasFilter = Boolean(params?.author || params?.tag || params?.category || params?.search);
 
+      // Filtered requests bypass cache; unfiltered requests use tags for on-demand invalidation
+      // with a time-based fallback of 120 s in case the admin never triggers revalidation.
       return fetchApi(`/blogs?${query.toString()}`, {
-        ...(hasFilter ? { cache: 'no-store' } : { next: { revalidate: 120 } }),
+        ...(hasFilter
+          ? { cache: 'no-store' }
+          : { revalidate: 120, tags: ['blogs'] }),
       });
     },
 
-    getBySlug: (slug: string) => fetchApi(`/blogs/${slug}`, { revalidate: 300 }),
+    getBySlug: (slug: string) =>
+      fetchApi(`/blogs/${slug}`, { revalidate: 300, tags: ['blog-detail', `blog:${slug}`] }),
 
     getShareLinks: (slug: string) => fetchApi(`/blogs/${slug}/share`),
   },
@@ -151,7 +196,7 @@ export const publicApi = {
 
   // Category APIs
   categories: {
-    list: () => fetchApi('/categories'),
+    list: () => fetchApi('/categories', { tags: ['blog-categories'] }),
   },
 
   // Comment APIs
@@ -210,10 +255,12 @@ export const publicApi = {
       if (params?.page) query.set('page', params.page.toString());
       if (params?.limit) query.set('limit', params.limit.toString());
 
-      return fetchApi(`/jobs?${query.toString()}`, { next: { revalidate: 60 } });
+      // Tag enables on-demand invalidation; 60 s revalidate is the time-based fallback.
+      return fetchApi(`/jobs?${query.toString()}`, { revalidate: 60, tags: ['jobs'] });
     },
 
-    getBySlug: (slug: string) => fetchApi(`/jobs/${slug}`, { next: { revalidate: 60 } }),
+    getBySlug: (slug: string) =>
+      fetchApi(`/jobs/${slug}`, { revalidate: 60, tags: ['job-detail', `job:${slug}`] }),
 
     apply: (jobId: number, data: FormData) =>
       fetchApi(`/jobs/${jobId}/apply`, {

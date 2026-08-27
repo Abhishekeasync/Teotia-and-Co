@@ -21,6 +21,7 @@ import { notifySubscribersOfNewPost } from '../utils/mail';
 import { buildPaginationMeta, PaginationParams } from '../utils/pagination';
 import { deleteBlogImageByUrl, uploadBlogImage } from '../utils/s3';
 import { slugify, uniqueSlugFromHeading } from '../utils/slug';
+import { retryOnDuplicateKey } from '../utils/retry';
 
 export type CreateBlogInput = {
   heading: string;
@@ -243,60 +244,59 @@ export class BlogService {
   async createDraft(adminId: number, adminName: string, input: CreateBlogInput): Promise<AdminBlogDetail> {
     await this.resolveCategory(input.categoryId);
 
-    if (await this.blogRepository.headingTaken(input.heading)) {
-      throw new ApiError(HTTP_STATUS.CONFLICT, 'A blog with this heading already exists');
-    }
-
-    const slug = await this.allocateSlug(input.heading);
-    let authorName = input.authorName?.trim() || adminName;
-    if (input.authorIds && input.authorIds.length > 0) {
-      authorName = await this.resolveAuthorDisplayName(input.authorIds);
-    }
-    const row: CreateBlogRow = {
-      heading: input.heading.trim(),
-      slug,
-      shortDescription: input.shortDescription.trim(),
-      body: input.body,
-      categoryId: input.categoryId,
-      authorName,
-      createdByAdminId: adminId,
-      featuredImageUrl: input.featuredImageUrl ?? null,
-      metaTitle: input.metaTitle ?? null,
-      metaDescription: input.metaDescription ?? null,
-      canonicalUrl: input.canonicalUrl ?? null,
-      ogImageUrl: input.ogImageUrl ?? null,
-      status: input.publishType === 'publish_now' ? 'published' : 'draft',
-      publishType: input.publishType ?? 'draft',
-      scheduledPublishAt: input.scheduledPublishAt ?? null,
-      schedulerStatus: input.publishType === 'scheduled' ? 'pending' : null,
-      publishedAt: input.publishType === 'publish_now' ? new Date() : null,
-    };
-
-    const blogId = await this.blogRepository.create(row);
-    const tagIds = await this.tagRepository.findOrCreateIds(input.tagNames ?? []);
-    await this.tagRepository.replaceBlogTags(blogId, tagIds);
-    if (input.authorIds && input.authorIds.length > 0) {
-      await this.authorRepository.replaceBlogAuthors(blogId, input.authorIds);
-    }
-
-    if (input.imageUrls !== undefined) {
-      const urls = this.assertImageLimit(input.imageUrls);
-      await this.blogRepository.replaceImageUrls(blogId, urls);
-      if (!row.featuredImageUrl && urls[0]) {
-        await this.blogRepository.update(blogId, { featuredImageUrl: urls[0] });
+    // Retry slug allocation and creation to handle concurrent duplicate slug conflicts
+    return retryOnDuplicateKey(async () => {
+      const slug = await this.allocateSlug(input.heading);
+      let authorName = input.authorName?.trim() || adminName;
+      if (input.authorIds && input.authorIds.length > 0) {
+        authorName = await this.resolveAuthorDisplayName(input.authorIds);
       }
-    }
+      const row: CreateBlogRow = {
+        heading: input.heading.trim(),
+        slug,
+        shortDescription: input.shortDescription.trim(),
+        body: input.body,
+        categoryId: input.categoryId,
+        authorName,
+        createdByAdminId: adminId,
+        featuredImageUrl: input.featuredImageUrl ?? null,
+        metaTitle: input.metaTitle ?? null,
+        metaDescription: input.metaDescription ?? null,
+        canonicalUrl: input.canonicalUrl ?? null,
+        ogImageUrl: input.ogImageUrl ?? null,
+        status: input.publishType === 'publish_now' ? 'published' : 'draft',
+        publishType: input.publishType ?? 'draft',
+        scheduledPublishAt: input.scheduledPublishAt ?? null,
+        schedulerStatus: input.publishType === 'scheduled' ? 'pending' : null,
+        publishedAt: input.publishType === 'publish_now' ? new Date() : null,
+      };
 
-    if (input.relatedBlogIds !== undefined) {
-      const relatedIds = await this.validateRelatedBlogIds(blogId, input.relatedBlogIds);
-      await this.blogRelatedRepository.replaceForBlog(blogId, relatedIds);
-    }
+      const blogId = await this.blogRepository.create(row);
+      const tagIds = await this.tagRepository.findOrCreateIds(input.tagNames ?? []);
+      await this.tagRepository.replaceBlogTags(blogId, tagIds);
+      if (input.authorIds && input.authorIds.length > 0) {
+        await this.authorRepository.replaceBlogAuthors(blogId, input.authorIds);
+      }
 
-    const created = await this.blogRepository.findById(blogId);
-    if (!created) {
-      throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to load created blog');
-    }
-    return this.toAdminDetail(created);
+      if (input.imageUrls !== undefined) {
+        const urls = this.assertImageLimit(input.imageUrls);
+        await this.blogRepository.replaceImageUrls(blogId, urls);
+        if (!row.featuredImageUrl && urls[0]) {
+          await this.blogRepository.update(blogId, { featuredImageUrl: urls[0] });
+        }
+      }
+
+      if (input.relatedBlogIds !== undefined) {
+        const relatedIds = await this.validateRelatedBlogIds(blogId, input.relatedBlogIds);
+        await this.blogRelatedRepository.replaceForBlog(blogId, relatedIds);
+      }
+
+      const created = await this.blogRepository.findById(blogId);
+      if (!created) {
+        throw new ApiError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'Failed to load created blog');
+      }
+      return this.toAdminDetail(created);
+    });
   }
 
   async updateBlog(id: number, input: UpdateBlogInput): Promise<AdminBlogDetail> {
@@ -344,9 +344,6 @@ export class BlogService {
 
     if (input.heading !== undefined && input.heading.trim() !== existing.heading) {
       const heading = input.heading.trim();
-      if (await this.blogRepository.headingTaken(heading, id)) {
-        throw new ApiError(HTTP_STATUS.CONFLICT, 'A blog with this heading already exists');
-      }
       patch.heading = heading;
       patch.slug = await this.allocateSlug(heading, id);
     }

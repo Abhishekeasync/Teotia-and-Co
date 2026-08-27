@@ -8,12 +8,16 @@ import {
   useId,
   useRef,
   useState,
+  useMemo,
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { UnsavedChangesDialog } from '@/components/admin/UnsavedChangesDialog';
 
 const BROWSER_BACK_TOKEN = '__browser_back__';
+const INTERACTION_TIMEOUT = 100;
+const DIRTY_CHECK_INTERVAL = 250;
+const LEAVING_RESET_DELAY = 300;
 
 type NavigationGuard = {
   id: string;
@@ -38,48 +42,53 @@ export function AdminNavigationGuardProvider({
   children: ReactNode;
 }) {
   const router = useRouter();
+  
+  // State refs - using refs for values that shouldn't trigger re-renders
   const guardsRef = useRef<NavigationGuard[]>([]);
   const leavingRef = useRef(false);
   const historyTrapActiveRef = useRef(false);
-  const pendingHrefRef = useRef<string | null>(null);
-  const activeGuardIdRef = useRef<string | null>(null);
+  const isInteractingRef = useRef(false);
+  const interactionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Dialog state
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const [activeGuardId, setActiveGuardId] = useState<string | null>(null);
+  const [hasDirtyGuard, setHasDirtyGuard] = useState(false);
 
+  // Guard management
   const registerGuard = useCallback((guard: NavigationGuard) => {
-    guardsRef.current = guardsRef.current.filter((g) => g.id !== guard.id);
-    guardsRef.current.push(guard);
+    guardsRef.current = [...guardsRef.current.filter((g) => g.id !== guard.id), guard];
   }, []);
 
   const unregisterGuard = useCallback((id: string) => {
     guardsRef.current = guardsRef.current.filter((g) => g.id !== id);
   }, []);
 
-  const findDirtyGuard = useCallback(() => {
+  const findDirtyGuard = useCallback((): NavigationGuard | undefined => {
     return guardsRef.current.find((guard) => guard.isDirty());
   }, []);
 
-  const [hasDirtyGuard, setHasDirtyGuard] = useState(false);
-
+  // Periodically sync dirty state
   useEffect(() => {
     const syncDirty = () => {
       if (leavingRef.current) return;
       setHasDirtyGuard(Boolean(findDirtyGuard()));
     };
-    syncDirty();
-    const interval = window.setInterval(syncDirty, 250);
-    return () => window.clearInterval(interval);
+    
+    syncDirty(); // Initial check
+    const interval = setInterval(syncDirty, DIRTY_CHECK_INTERVAL);
+    return () => clearInterval(interval);
   }, [findDirtyGuard]);
 
+  // Dialog management
   const openGuardDialog = useCallback((href: string, guard: NavigationGuard) => {
-    pendingHrefRef.current = href;
-    activeGuardIdRef.current = guard.id;
     setPendingHref(href);
+    setActiveGuardId(guard.id);
   }, []);
 
   const closeDialog = useCallback(() => {
-    pendingHrefRef.current = null;
-    activeGuardIdRef.current = null;
     setPendingHref(null);
+    setActiveGuardId(null);
   }, []);
 
   const navigateWithoutGuard = useCallback(
@@ -101,89 +110,140 @@ export function AdminNavigationGuardProvider({
     [findDirtyGuard, openGuardDialog, router]
   );
 
+  // Interaction tracking - prevents false positives on button clicks
+  const markInteractionStart = useCallback(() => {
+    isInteractingRef.current = true;
+    
+    // Clear any existing timer
+    if (interactionTimerRef.current) {
+      clearTimeout(interactionTimerRef.current);
+    }
+  }, []);
+
+  const markInteractionEnd = useCallback(() => {
+    // Delay reset to ensure beforeunload check completes
+    interactionTimerRef.current = setTimeout(() => {
+      isInteractingRef.current = false;
+      interactionTimerRef.current = null;
+    }, INTERACTION_TIMEOUT);
+  }, []);
+
+  // Navigation guards and event listeners
   useEffect(() => {
     if (!hasDirtyGuard) {
       historyTrapActiveRef.current = false;
       return;
     }
 
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (leavingRef.current || !findDirtyGuard()) return;
+    // Prevent tab close/refresh when dirty
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // Skip if: leaving, no guards, or user is actively interacting
+      if (leavingRef.current || !findDirtyGuard() || isInteractingRef.current) {
+        return;
+      }
+      
       event.preventDefault();
-      event.returnValue = '';
+      event.returnValue = ''; // Modern browsers ignore custom messages
     };
 
-    const onPopState = () => {
+    // Handle browser back button
+    const handlePopState = () => {
       if (leavingRef.current) return;
 
       const dirtyGuard = findDirtyGuard();
       if (!dirtyGuard) return;
 
+      // Re-push state to trap the back action
       history.pushState({ unsavedGuard: true }, '', window.location.href);
       openGuardDialog(BROWSER_BACK_TOKEN, dirtyGuard);
     };
 
+    // Initialize history trap
     if (!historyTrapActiveRef.current) {
       history.pushState({ unsavedGuard: true }, '', window.location.href);
       historyTrapActiveRef.current = true;
     }
 
-    window.addEventListener('popstate', onPopState);
-    window.addEventListener('beforeunload', onBeforeUnload);
+    // Register event listeners
+    const listenerOptions = { capture: true, passive: true };
+    
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('click', markInteractionStart, listenerOptions);
+    window.addEventListener('click', markInteractionEnd);
+    window.addEventListener('submit', markInteractionStart, listenerOptions);
+    window.addEventListener('submit', markInteractionEnd);
 
+    // Cleanup
     return () => {
-      window.removeEventListener('popstate', onPopState);
-      window.removeEventListener('beforeunload', onBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('click', markInteractionStart, listenerOptions);
+      window.removeEventListener('click', markInteractionEnd);
+      window.removeEventListener('submit', markInteractionStart, listenerOptions);
+      window.removeEventListener('submit', markInteractionEnd);
+      
+      if (interactionTimerRef.current) {
+        clearTimeout(interactionTimerRef.current);
+      }
     };
-  }, [hasDirtyGuard, findDirtyGuard, openGuardDialog]);
+  }, [hasDirtyGuard, findDirtyGuard, openGuardDialog, markInteractionStart, markInteractionEnd]);
 
+  // Dialog action handlers
   const handleContinue = useCallback(() => {
     closeDialog();
   }, [closeDialog]);
 
   const handleReset = useCallback(() => {
-    const guard = guardsRef.current.find(
-      (g) => g.id === activeGuardIdRef.current
-    );
-    if (guard) guard.reset();
+    const guard = guardsRef.current.find((g) => g.id === activeGuardId);
+    if (guard) {
+      guard.reset();
+    }
     closeDialog();
-  }, [closeDialog]);
+  }, [activeGuardId, closeDialog]);
 
   const handleLeave = useCallback(() => {
-    const href = pendingHrefRef.current;
-    if (!href) return;
+    if (!pendingHref) return;
 
-    const guard = guardsRef.current.find(
-      (g) => g.id === activeGuardIdRef.current
-    );
+    const guard = guardsRef.current.find((g) => g.id === activeGuardId);
 
+    // Mark as leaving to bypass guards
     leavingRef.current = true;
     setHasDirtyGuard(false);
 
-    if (guard) guard.discard();
+    // Discard changes
+    if (guard) {
+      guard.discard();
+    }
+    
     closeDialog();
 
-    if (href === BROWSER_BACK_TOKEN) {
-      // Pop trap sentinel + current entry to reach the previous page.
-      history.go(-2);
+    // Navigate
+    if (pendingHref === BROWSER_BACK_TOKEN) {
+      history.go(-2); // Pop trap + current = go back
     } else {
-      router.replace(href);
+      router.replace(pendingHref);
     }
 
-    window.setTimeout(() => {
+    // Reset leaving flag after navigation completes
+    setTimeout(() => {
       leavingRef.current = false;
-    }, 300);
-  }, [closeDialog, router]);
+    }, LEAVING_RESET_DELAY);
+  }, [pendingHref, activeGuardId, closeDialog, router]);
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      registerGuard,
+      unregisterGuard,
+      requestNavigation,
+      navigateWithoutGuard,
+    }),
+    [registerGuard, unregisterGuard, requestNavigation, navigateWithoutGuard]
+  );
 
   return (
-    <AdminNavigationGuardContext.Provider
-      value={{
-        registerGuard,
-        unregisterGuard,
-        requestNavigation,
-        navigateWithoutGuard,
-      }}
-    >
+    <AdminNavigationGuardContext.Provider value={contextValue}>
       {children}
       <UnsavedChangesDialog
         open={pendingHref !== null}

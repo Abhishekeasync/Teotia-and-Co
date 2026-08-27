@@ -12,7 +12,9 @@ export interface ApiSuccess<T = unknown> {
 
 export interface ApiError {
   success: false;
-  error: {
+  message?: string;
+  errors?: Array<string | Record<string, unknown>>;
+  error?: {
     statusCode: number;
     message: string;
     details?: unknown;
