@@ -229,12 +229,20 @@ export class JobApplicationRepository {
     }
   }
 
-  async hasApplied(jobId: number, email: string): Promise<boolean> {
+  async hasApplied(jobId: number, email: string, phone: string): Promise<boolean> {
+    const phoneDigits = phone.replace(/\D/g, '').slice(-10);
     const connection = await acquireConnection();
     try {
       const [rows] = await connection.query<RowDataPacket[]>(
-        'SELECT id FROM job_applications WHERE job_id = ? AND email = ? AND deleted_at IS NULL LIMIT 1',
-        [jobId, email],
+        `SELECT id FROM job_applications
+         WHERE job_id = ?
+           AND deleted_at IS NULL
+           AND (
+             LOWER(email) = LOWER(?)
+             OR RIGHT(phone, 10) = ?
+           )
+         LIMIT 1`,
+        [jobId, email.trim(), phoneDigits],
       );
       return rows.length > 0;
     } finally {

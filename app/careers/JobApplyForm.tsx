@@ -189,11 +189,13 @@ export function JobApplyForm({ job }: Props) {
       setSubmitted(true);
       toast.success('Application received. We will be in touch.');
     } catch (err) {
-      const msg =
-        err instanceof ApiClientError
-          ? err.message
-          : 'Could not submit the application. Please try again.';
-      toast.error(msg);
+      const apiMessage = err instanceof ApiClientError ? err.message : '';
+      const alreadyApplied = /already applied/i.test(apiMessage);
+      toast.error(
+        alreadyApplied
+          ? 'You have already applied for this job'
+          : apiMessage || 'Could not submit the application. Please try again.',
+      );
     } finally {
       setLoading(false);
     }

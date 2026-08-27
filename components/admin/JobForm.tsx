@@ -8,6 +8,7 @@ import { scrollToFirstInvalidField } from '@/lib/toast-validation';
 import { adminApi } from '@/lib/api/client';
 import { ApiJob } from '@/lib/api/types';
 import { IconSpinner } from './AdminIcons';
+import { revalidateJobs } from '@/lib/actions/revalidate';
 
 type JobFormProps = {
   initialData?: ApiJob | null;
@@ -103,8 +104,12 @@ export function JobForm({ initialData }: JobFormProps) {
         toast.success('Job created successfully');
       }
 
-      router.push('/admin/jobs');
-      router.refresh();
+      // Bust the public ISR cache so the careers page reflects the change immediately.
+      await revalidateJobs();
+
+      // Hard-navigate to bypass the Next.js Router Cache, guaranteeing the jobs
+      // list re-fetches fresh data instead of serving a stale cached shell.
+      window.location.href = '/admin/jobs';
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save job');
     } finally {

@@ -19,6 +19,7 @@ import { AdminTableSkeleton } from '@/components/admin/AdminSkeleton';
 import { adminApi } from '@/lib/api/client';
 import { ApiJob, ApiJobListResponse } from '@/lib/api/types';
 import { useDeleteDialog } from '@/lib/hooks/useDeleteDialog';
+import { revalidateJobs } from '@/lib/actions/revalidate';
 
 function formatDate(iso: string | null) {
   if (!iso) return '—';
@@ -62,6 +63,8 @@ export default function AdminJobsPage() {
       const newStatus = job.status === 'published' ? 'draft' : 'published';
       await adminApi.jobs.updateStatus(job.id, newStatus);
       toast.success(newStatus === 'published' ? 'Job Published' : 'Job Unpublished');
+      // Bust the public ISR cache so the careers page reflects status change immediately.
+      await revalidateJobs();
       await loadJobs(page);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action failed');
@@ -87,6 +90,8 @@ export default function AdminJobsPage() {
         try {
           await adminApi.jobs.delete(job.id);
           toast.success('Job deleted');
+          // Bust the public ISR cache so deleted job no longer appears on the careers page.
+          await revalidateJobs();
           await loadJobs(page);
         } catch (err) {
           toast.error(err instanceof Error ? err.message : 'Delete failed');

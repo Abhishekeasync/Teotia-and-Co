@@ -19,6 +19,7 @@ import { adminApi } from '@/lib/api/client';
 import { normalizeApiBlogs } from '@/lib/api/normalize';
 import { ApiBlog, ApiBlogListResponse } from '@/lib/api/types';
 import { useDeleteDialog } from '@/lib/hooks/useDeleteDialog';
+import { revalidateBlogs } from '@/lib/actions/revalidate';
 
 function formatDate(iso: string | null) {
   if (!iso) return '—';
@@ -66,6 +67,8 @@ export default function AdminBlogsPage() {
         await adminApi.blogs.publish(blog.id);
         toast.success('Blog published');
       }
+      // Bust the public ISR cache so the publish/unpublish state is reflected immediately.
+      await revalidateBlogs();
       await loadBlogs(page);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Action failed');
@@ -91,6 +94,8 @@ export default function AdminBlogsPage() {
         try {
           await adminApi.blogs.delete(blog.id);
           toast.success('Blog deleted');
+          // Bust the public ISR cache so the deleted blog is no longer served.
+          await revalidateBlogs();
           await loadBlogs(page);
         } catch (err) {
           toast.error(err instanceof Error ? err.message : 'Delete failed');

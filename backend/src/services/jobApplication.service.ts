@@ -84,7 +84,11 @@ export class JobApplicationService {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Job not found or not accepting applications');
     }
 
-    const hasApplied = await this.applicationRepository.hasApplied(input.jobId, input.email);
+    const hasApplied = await this.applicationRepository.hasApplied(
+      input.jobId,
+      input.email,
+      input.phone,
+    );
     if (hasApplied) {
       throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'You have already applied for this job');
     }

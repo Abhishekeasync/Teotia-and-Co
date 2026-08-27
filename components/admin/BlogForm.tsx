@@ -21,6 +21,7 @@ import { RichTextEditor } from '@/components/admin/RichTextEditor';
 import { adminApi, publicApi } from '@/lib/api/client';
 import { ApiBlog } from '@/lib/api/types';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { revalidateBlogs } from '@/lib/actions/revalidate';
 
 type CategoryOption = { id: number; name: string };
 
@@ -499,10 +500,15 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         await adminApi.blogs.create(formData);
       }
 
+      // Bust the Next.js public-facing ISR cache so visitors see the change immediately.
+      await revalidateBlogs();
+
       toast.success(saveSuccessMessage(effectivePublishType, isEdit));
 
       clearBlogDraft(blogId);
-      router.push('/admin/blogs');
+      // Hard-navigate to bypass the Next.js Router Cache so the blogs list
+      // always re-fetches fresh data after a save.
+      window.location.href = '/admin/blogs';
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save blog');
     } finally {
