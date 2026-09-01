@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CountUp from '@/components/CountUp';
 import CtaBanner from '@/components/CtaBanner';
+import ConsultationHours from '@/components/ConsultationHours';
 import TrustSection from '@/components/TrustSection';
 import ServiceCheckpoints from '@/components/ServiceCheckpoints';
 import TestimonialCarousel from '@/components/TestimonialCarousel';
@@ -318,69 +319,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CONSULTATION HOURS */}
-      <section className="section section-gray" id="contact">
-        <div className="available">
-          <Reveal className="available-header">
-            <RevealText as="h2">We're Available All Week for Flexible Consultation Support</RevealText>
-            <RevealText as="p" className="available-sub" delay={0.08}>
-              Get expert financial guidance at the time that works best for you.
-            </RevealText>
-          </Reveal>
-
-          <div className="available-body">
-            <Reveal className="available-image">
-              <Image
-                src="/assets/images/static.wixstatic.com/image-20256-4404a5e778.png"
-                alt="Team collaborating during a consultation"
-                width={640}
-                height={520}
-              />
-            </Reveal>
-
-            <Reveal className="available-card">
-              <div className="available-card-icon" aria-hidden="true">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 2.5c-3.87 0-7 3.05-7 6.8 0 4.85 5.55 10.58 6.55 11.57a.7.7 0 0 0 1 0C13.45 19.88 19 14.15 19 9.3c0-3.75-3.13-6.8-7-6.8Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinejoin="round"
-                  />
-                  <circle cx="12" cy="9.3" r="2.4" fill="currentColor" />
-                </svg>
-              </div>
-              <h3>Consultation Hours</h3>
-              <p className="available-card-desc">
-                We're available throughout the week and ready to assist with flexible consultation times.
-              </p>
-              <div className="available-hours">
-                <div className="available-hours-row">
-                  <span className="day">Monday – Thursday</span>
-                  <span className="time">08:00 – 18:00</span>
-                </div>
-                <div className="available-hours-row">
-                  <span className="day">Friday</span>
-                  <span className="time">09:00 – 17:00</span>
-                </div>
-                <div className="available-hours-row">
-                  <span className="day">Saturday &amp; Sunday</span>
-                  <span className="time">08:30 – 19:30</span>
-                </div>
-              </div>
-              <Link href={buildConsultationUrl({ source: 'home-hours' })} className="btn-available">
-                Get Appointment
-                <span className="btn-available-icon" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="M13 6l6 6-6 6" />
-                  </svg>
-                </span>
-              </Link>
-            </Reveal>
-          </div>
-        </div>
-      </section>
+      <ConsultationHours />
 
       {/* BLOG */}
       <section className="section section-gray blog-home-preview" id="blog">

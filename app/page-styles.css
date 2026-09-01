@@ -1580,12 +1580,22 @@
   border-radius: 16px;
   padding: 36px 24px;
   text-align: center;
-  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.contact-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+.contact-card:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .contact-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(8, 8, 94, 0.08);
+  }
 }
 
 .contact-card-icon {
@@ -1617,6 +1627,55 @@
 
 .contact-card a:hover {
   color: var(--green);
+}
+
+.contact-card--hours .contact-card-hours {
+  align-self: stretch;
+  width: 100%;
+  margin: 2px 0 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-card-hours-row {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(8, 8, 94, 0.1);
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.contact-card-hours-row:first-child {
+  padding-top: 0;
+}
+
+.contact-card-hours-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.contact-card-hours-row dt {
+  margin: 0;
+  font-weight: 500;
+  color: var(--heading-color);
+  white-space: nowrap;
+}
+
+.contact-card-hours-row dd {
+  margin: 0;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+#contact-form,
+#consultation-hours {
+  scroll-margin-top: 96px;
 }
 
 .contact-form-layout {

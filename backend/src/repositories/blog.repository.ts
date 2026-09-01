@@ -302,6 +302,45 @@ export class BlogRepository {
     }
   }
 
+  async recordView(
+    blogId: number,
+    visitorHash: string,
+    viewKey: string,
+    windowStart: Date,
+  ): Promise<boolean> {
+    const connection = await acquireConnection();
+    try {
+      await connection.beginTransaction();
+      
+      try {
+        await connection.query(
+          `INSERT INTO blog_views (blog_id, visitor_hash, view_key, window_start)
+           VALUES (?, ?, ?, ?)`,
+          [blogId, visitorHash, viewKey, windowStart],
+        );
+      } catch (error: any) {
+        if (error.code === 'ER_DUP_ENTRY') {
+          await connection.rollback();
+          return false;
+        }
+        throw error;
+      }
+
+      await connection.query(
+        'UPDATE blogs SET view_count = view_count + 1 WHERE id = ? AND deleted_at IS NULL',
+        [blogId],
+      );
+
+      await connection.commit();
+      return true;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   private buildPublicWhere(
     filters: PublicBlogListFilters,
     categoryId?: number,

@@ -39,3 +39,12 @@ export const getBlogShareLinks = asyncHandler(async (req: Request, res: Response
   const share = await blogService.getShareLinks(slug);
   return ApiResponse.success(res, { share }, '');
 });
+
+export const recordBlogView = asyncHandler(async (req: Request, res: Response) => {
+  const { slug } = req.params as { slug: string };
+  const { viewKey } = req.body as { viewKey: string };
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+
+  const result = await blogService.recordView(slug, ip, viewKey);
+  return ApiResponse.success(res, result, '');
+});

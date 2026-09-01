@@ -3,7 +3,13 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/lib/toast';
-import { scrollToFirstInvalidField } from '@/lib/toast-validation';
+import { showValidationToasts } from '@/lib/toast-validation';
+import {
+  validateJobAboutRole,
+  validateJobRequiredSkills,
+  validateJobRequirements,
+  validateJobResponsibilities,
+} from '@/lib/validation';
 
 import { adminApi } from '@/lib/api/client';
 import { ApiJob } from '@/lib/api/types';
@@ -17,11 +23,20 @@ type JobFormProps = {
 type JobFieldErrors = {
   title?: string;
   description?: string;
+  responsibilities?: string;
+  requirements?: string;
+  requiredSkills?: string;
 };
 
-const JOB_FIELD_ORDER = ['title', 'description'] as const;
+const JOB_FIELD_ORDER = [
+  'title',
+  'description',
+  'responsibilities',
+  'requirements',
+  'requiredSkills',
+] as const;
 
-const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship'] as const;
+const EMPLOYMENT_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Apprenticeship', 'Articleship'] as const;
 
 export function JobForm({ initialData }: JobFormProps) {
   const router = useRouter();
@@ -62,21 +77,31 @@ export function JobForm({ initialData }: JobFormProps) {
 
     const nextErrors: JobFieldErrors = {};
     if (!title.trim()) nextErrors.title = 'Please enter the job title.';
-    const trimmedDescription = description.trim();
-    if (!trimmedDescription) {
-      nextErrors.description = 'Please enter the job description.';
-    } else if (trimmedDescription.length < 20) {
-      nextErrors.description = 'Job description must be at least 20 characters.';
-    }
 
-    if (nextErrors.title || nextErrors.description) {
+    const aboutRoleError = validateJobAboutRole(description);
+    if (aboutRoleError) nextErrors.description = aboutRoleError;
+
+    const responsibilitiesError = validateJobResponsibilities(responsibilities);
+    if (responsibilitiesError) nextErrors.responsibilities = responsibilitiesError;
+
+    const requirementsError = validateJobRequirements(requirements);
+    if (requirementsError) nextErrors.requirements = requirementsError;
+
+    const requiredSkillsError = validateJobRequiredSkills(requiredSkills);
+    if (requiredSkillsError) nextErrors.requiredSkills = requiredSkillsError;
+
+    if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      toast.error(nextErrors.title ?? nextErrors.description ?? '');
-      scrollToFirstInvalidField(nextErrors, JOB_FIELD_ORDER);
+      showValidationToasts(nextErrors, { fieldOrder: JOB_FIELD_ORDER });
       return;
     }
 
     setErrors({});
+
+    const trimmedDescription = description.trim();
+    const trimmedResponsibilities = responsibilities.trim();
+    const trimmedRequirements = requirements.trim();
+    const trimmedRequiredSkills = requiredSkills.trim();
 
     setSaving(true);
     try {
@@ -90,9 +115,9 @@ export function JobForm({ initialData }: JobFormProps) {
         salaryCtc: salaryCtc.trim() || null,
         numberOfOpenings: numberOfOpenings ? parseInt(numberOfOpenings, 10) : null,
         description: trimmedDescription,
-        responsibilities: responsibilities.trim() || null,
-        requirements: requirements.trim() || null,
-        requiredSkills: requiredSkills.trim() || null,
+        responsibilities: trimmedResponsibilities || null,
+        requirements: trimmedRequirements || null,
+        requiredSkills: trimmedRequiredSkills || null,
         status,
       };
 
@@ -182,7 +207,7 @@ export function JobForm({ initialData }: JobFormProps) {
             value={employmentType}
             onChange={(e) => setEmploymentType(e.target.value)}
           >
-            <option value="">Select employment type</option>
+            <option value="" disabled hidden>Select employment type</option>
             {EMPLOYMENT_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
@@ -291,10 +316,21 @@ export function JobForm({ initialData }: JobFormProps) {
         <textarea
           id="responsibilities"
           value={responsibilities}
-          onChange={(e) => setResponsibilities(e.target.value)}
+          onChange={(e) => {
+            setResponsibilities(e.target.value);
+            clearError('responsibilities');
+          }}
           rows={6}
+          aria-invalid={errors.responsibilities ? true : undefined}
+          aria-describedby={errors.responsibilities ? 'job-responsibilities-error' : undefined}
+          className={errors.responsibilities ? 'field-invalid' : undefined}
           placeholder="Key responsibilities..."
         />
+        {errors.responsibilities && (
+          <span id="job-responsibilities-error" className="admin-field-error">
+            {errors.responsibilities}
+          </span>
+        )}
       </div>
 
       <div className="admin-field" style={{ marginTop: '2rem' }}>
@@ -302,10 +338,21 @@ export function JobForm({ initialData }: JobFormProps) {
         <textarea
           id="requirements"
           value={requirements}
-          onChange={(e) => setRequirements(e.target.value)}
+          onChange={(e) => {
+            setRequirements(e.target.value);
+            clearError('requirements');
+          }}
           rows={6}
+          aria-invalid={errors.requirements ? true : undefined}
+          aria-describedby={errors.requirements ? 'job-requirements-error' : undefined}
+          className={errors.requirements ? 'field-invalid' : undefined}
           placeholder="Requirements..."
         />
+        {errors.requirements && (
+          <span id="job-requirements-error" className="admin-field-error">
+            {errors.requirements}
+          </span>
+        )}
       </div>
 
       <div className="admin-field" style={{ marginTop: '2rem' }}>
@@ -313,10 +360,21 @@ export function JobForm({ initialData }: JobFormProps) {
         <textarea
           id="requiredSkills"
           value={requiredSkills}
-          onChange={(e) => setRequiredSkills(e.target.value)}
+          onChange={(e) => {
+            setRequiredSkills(e.target.value);
+            clearError('requiredSkills');
+          }}
           rows={4}
+          aria-invalid={errors.requiredSkills ? true : undefined}
+          aria-describedby={errors.requiredSkills ? 'job-required-skills-error' : undefined}
+          className={errors.requiredSkills ? 'field-invalid' : undefined}
           placeholder="Required skills..."
         />
+        {errors.requiredSkills && (
+          <span id="job-required-skills-error" className="admin-field-error">
+            {errors.requiredSkills}
+          </span>
+        )}
       </div>
 
       <div className="admin-form-actions" style={{ marginTop: '2rem' }}>

@@ -3,6 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from '@/lib/toast';
+import { showValidationToasts } from '@/lib/toast-validation';
 import {
   applyBlogDraft,
   blogSnapshotsEqual,
@@ -29,6 +30,31 @@ type BlogFormProps = {
   blogId?: number;
   initial?: ApiBlog | null;
 };
+
+type BlogFieldErrors = {
+  heading?: string;
+  shortDescription?: string;
+  body?: string;
+  categoryId?: string;
+  scheduledPublishAt?: string;
+};
+
+const BLOG_FIELD_ORDER = [
+  'heading',
+  'shortDescription',
+  'body',
+  'categoryId',
+  'scheduledPublishAt',
+] as const;
+
+function isHtmlContentEmpty(html: string): boolean {
+  const text = html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return !text;
+}
 
 /** Convert a UTC ISO string (or Date) to the format datetime-local expects: YYYY-MM-DDTHH:MM in local time. */
 function toLocalDatetimeString(iso: string | Date): string {
@@ -105,6 +131,13 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
   const [savingTarget, setSavingTarget] = useState<'draft' | 'primary' | null>(null);
   const savingRef = useRef(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [errors, setErrors] = useState<BlogFieldErrors>({});
+
+  const clearError = (field: keyof BlogFieldErrors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
   const parsedTags = useMemo(
     () =>
@@ -465,26 +498,30 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
 
     const effectivePublishType = publishTypeOverride;
 
-    if (!heading.trim() || !shortDescription.trim() || !body.trim()) {
-      toast.error('Heading, description, and body are required');
+    const nextErrors: BlogFieldErrors = {};
+    if (!heading.trim()) nextErrors.heading = 'Please enter the heading.';
+    if (!shortDescription.trim()) {
+      nextErrors.shortDescription = 'Please enter the short description.';
+    }
+    if (isHtmlContentEmpty(body)) nextErrors.body = 'Please enter the body.';
+    if (!categoryId) nextErrors.categoryId = 'Please select a category.';
+    if (effectivePublishType === 'scheduled') {
+      const scheduleError = validateScheduledPublishAt(scheduledPublishAt);
+      if (scheduleError) nextErrors.scheduledPublishAt = scheduleError;
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      showValidationToasts(nextErrors, { fieldOrder: BLOG_FIELD_ORDER });
       return;
     }
-    if (!categoryId) {
-      toast.error('Please select a category');
-      return;
-    }
+
     if (categories.length === 0) {
       toast.error('No categories available. Run backend migrations and restart the API.');
       return;
     }
-    
-    if (effectivePublishType === 'scheduled') {
-      const scheduleError = validateScheduledPublishAt(scheduledPublishAt);
-      if (scheduleError) {
-        toast.error(scheduleError);
-        return;
-      }
-    }
+
+    setErrors({});
 
     if (!validateImageFile(featuredFile, 'Featured image')) return;
     if (!validateImageFile(ogFile, 'OG image')) return;
@@ -506,6 +543,11 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       toast.success(saveSuccessMessage(effectivePublishType, isEdit));
 
       clearBlogDraft(blogId);
+      // Disarm the navigation guard before the hard navigation below. The form
+      // fields still hold the submitted content, so isDirty() would otherwise
+      // stay true and the beforeunload handler would show the browser's native
+      // "Changes you made may not be saved." alert on a successful save.
+      discardChanges();
       // Hard-navigate to bypass the Next.js Router Cache so the blogs list
       // always re-fetches fresh data after a save.
       window.location.href = '/admin/blogs';
@@ -525,29 +567,53 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
     <form onSubmit={handleFormSubmit} className="admin-form" noValidate>
       <div className="admin-form-grid">
         <div className="admin-field">
-          <label htmlFor="heading">Heading</label>
+          <label htmlFor="heading">Heading *</label>
           <input
             id="heading"
             value={heading}
-            onChange={(e) => setHeading(e.target.value)}
-            required
+            onChange={(e) => {
+              setHeading(e.target.value);
+              clearError('heading');
+            }}
+            aria-invalid={errors.heading ? true : undefined}
+            aria-describedby={errors.heading ? 'blog-heading-error' : undefined}
+            className={errors.heading ? 'field-invalid' : undefined}
+            placeholder="Blog post title"
           />
+          {errors.heading && (
+            <span id="blog-heading-error" className="admin-field-error">
+              {errors.heading}
+            </span>
+          )}
         </div>
 
         <div className="admin-field">
-          <label htmlFor="shortDescription">Short description</label>
+          <label htmlFor="shortDescription">Short description *</label>
           <textarea
             id="shortDescription"
             value={shortDescription}
-            onChange={(e) => setShortDescription(e.target.value)}
-            required
+            onChange={(e) => {
+              setShortDescription(e.target.value);
+              clearError('shortDescription');
+            }}
             rows={3}
+            aria-invalid={errors.shortDescription ? true : undefined}
+            aria-describedby={
+              errors.shortDescription ? 'blog-short-description-error' : undefined
+            }
+            className={errors.shortDescription ? 'field-invalid' : undefined}
+            placeholder="Brief summary shown in listings"
           />
+          {errors.shortDescription && (
+            <span id="blog-short-description-error" className="admin-field-error">
+              {errors.shortDescription}
+            </span>
+          )}
         </div>
 
         <div className="admin-field">
           <div className="admin-field-row">
-            <label>Body</label>
+            <label htmlFor="body">Body *</label>
             <button
               type="button"
               className="admin-btn admin-btn-secondary admin-btn-sm"
@@ -556,7 +622,21 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
               Show preview
             </button>
           </div>
-          <RichTextEditor content={body} onChange={setBody} />
+          <div id="body">
+            <RichTextEditor
+              content={body}
+              onChange={(value) => {
+                setBody(value);
+                clearError('body');
+              }}
+              invalid={Boolean(errors.body)}
+            />
+          </div>
+          {errors.body && (
+            <span id="blog-body-error" className="admin-field-error">
+              {errors.body}
+            </span>
+          )}
         </div>
 
         {showPreview && (
@@ -600,12 +680,17 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
         )}
 
         <div className="admin-field">
-          <label htmlFor="categoryId">Category</label>
+          <label htmlFor="categoryId">Category *</label>
           <select
             id="categoryId"
             value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            required
+            onChange={(e) => {
+              setCategoryId(e.target.value);
+              clearError('categoryId');
+            }}
+            aria-invalid={errors.categoryId ? true : undefined}
+            aria-describedby={errors.categoryId ? 'blog-category-error' : undefined}
+            className={errors.categoryId ? 'field-invalid' : undefined}
           >
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
@@ -613,6 +698,11 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
               </option>
             ))}
           </select>
+          {errors.categoryId && (
+            <span id="blog-category-error" className="admin-field-error">
+              {errors.categoryId}
+            </span>
+          )}
           <p className="admin-field-hint">
             Categories are loaded from the blog category list. Run database
             migrations if this dropdown is empty.
@@ -705,10 +795,22 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
                 id="scheduledPublishAt"
                 type="datetime-local"
                 value={scheduledPublishAt}
-                onChange={(e) => setScheduledPublishAt(e.target.value)}
+                onChange={(e) => {
+                  setScheduledPublishAt(e.target.value);
+                  clearError('scheduledPublishAt');
+                }}
                 min={toLocalDatetimeString(new Date())}
-                required={publishType === 'scheduled'}
+                aria-invalid={errors.scheduledPublishAt ? true : undefined}
+                aria-describedby={
+                  errors.scheduledPublishAt ? 'blog-scheduled-publish-error' : undefined
+                }
+                className={errors.scheduledPublishAt ? 'field-invalid' : undefined}
               />
+              {errors.scheduledPublishAt && (
+                <span id="blog-scheduled-publish-error" className="admin-field-error">
+                  {errors.scheduledPublishAt}
+                </span>
+              )}
             </div>
           )}
         </div>

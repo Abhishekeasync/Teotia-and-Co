@@ -17,6 +17,7 @@ export interface RichTextEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: string;
+  invalid?: boolean;
 }
 
 export function RichTextEditor({
@@ -24,6 +25,7 @@ export function RichTextEditor({
   onChange,
   placeholder = 'Start writing your blog post...',
   minHeight = '400px',
+  invalid = false,
 }: RichTextEditorProps) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [imageDialogOpen, setImageDialogOpen] = useState(false);
@@ -138,7 +140,7 @@ export function RichTextEditor({
   const charCount = editor.getText().length;
 
   return (
-    <div className="rich-text-editor">
+    <div className={`rich-text-editor${invalid ? ' field-invalid' : ''}`}>
       <EditorToolbar
         editor={editor}
         selectionVersion={selectionTick}

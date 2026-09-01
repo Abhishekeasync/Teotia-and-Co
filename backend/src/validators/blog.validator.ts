@@ -152,3 +152,8 @@ export const adminBlogListQuerySchema = z.object({
   search: z.string().trim().max(200).optional(),
   excludeId: z.coerce.number().int().positive().optional(),
 });
+
+export const blogViewBodySchema = z.object({
+  viewKey: z.string().trim().min(1).max(255),
+});
+

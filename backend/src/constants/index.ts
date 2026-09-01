@@ -40,6 +40,22 @@ export const UPLOAD_ALLOWED_MIME = [
   'image/webp',
 ] as const;
 
+/** Job description (About this role) — stored as LONGTEXT. */
+export const JOB_ABOUT_ROLE_MIN = 20;
+export const JOB_ABOUT_ROLE_MAX = 10_000;
+
+/** Key responsibilities — optional LONGTEXT. */
+export const JOB_RESPONSIBILITIES_MIN = 20;
+export const JOB_RESPONSIBILITIES_MAX = 10_000;
+
+/** Requirements — optional LONGTEXT. */
+export const JOB_REQUIREMENTS_MIN = 20;
+export const JOB_REQUIREMENTS_MAX = 10_000;
+
+/** Required skills — optional LONGTEXT. */
+export const JOB_REQUIRED_SKILLS_MIN = 10;
+export const JOB_REQUIRED_SKILLS_MAX = 2_000;
+
 /** MySQL pool: max open connections to the server. */
 export const DB_POOL_CONNECTION_LIMIT = 10;
 /** Max waiters when all connections are busy; excess acquires fail fast instead of queuing forever. */
