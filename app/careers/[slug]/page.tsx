@@ -47,14 +47,35 @@ function jobFacts(job: ApiJob) {
   ].filter((fact) => Boolean(fact.value));
 }
 
+/** Convert plain-text (with \n line breaks) to safe HTML paragraphs. */
+function plainTextToHtml(text: string): string {
+  return text
+    .trim()
+    .split(/\n{2,}/) // blank line → new paragraph
+    .map((para) =>
+      `<p>${para
+        .trim()
+        .split('\n')
+        .map((line) => line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+        .join('<br />')}</p>`
+    )
+    .join('');
+}
+
 function RichContent({ html, title }: { html: string | null; title: string }) {
   if (!html?.trim()) return null;
+
+  // If it already looks like HTML (contains tags), render as-is.
+  // Otherwise convert plain text newlines to <p>/<br> markup.
+  const isHtml = /<[a-z][\s\S]*>/i.test(html);
+  const rendered = isHtml ? html : plainTextToHtml(html);
+
   return (
     <section className="job-read-block">
       <h2 className="job-read-title">{title}</h2>
       <div
         className="job-read-body"
-        dangerouslySetInnerHTML={{ __html: html }}
+        dangerouslySetInnerHTML={{ __html: rendered }}
       />
     </section>
   );

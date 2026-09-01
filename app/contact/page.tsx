@@ -20,7 +20,7 @@ import {
   parseConsultationParams,
 } from '@/lib/consultation';
 import { toast } from '@/lib/toast';
-import { SITE_CONTACT } from '@/lib/site';
+import { CONSULTATION_HOURS, SITE_CONTACT } from '@/lib/site';
 import '../page-styles.css';
 
 const DEFAULT_SERVICE_TYPES = [
@@ -250,7 +250,7 @@ function ContactPageContent() {
         <div className="contact-intro">
           <RevealText as="h2">Get in Touch With TEOTIA &amp; CO.</RevealText>
           <RevealText as="p" delay={0.08}>
-            Get in touch with TEOTIA &amp; CO. for clear, reliable financial support.
+            Reach the team by email, phone, or at our Noida office.
           </RevealText>
         </div>
 
@@ -284,7 +284,7 @@ function ContactPageContent() {
             <h3>Location</h3>
             <p>{SITE_CONTACT.location}</p>
           </StaggerItem>
-          <StaggerItem className="contact-card">
+          <StaggerItem className="contact-card contact-card--hours">
             <div className="contact-card-icon">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="10" />
@@ -292,7 +292,17 @@ function ContactPageContent() {
               </svg>
             </div>
             <h3>Working Hours</h3>
-            <p>{SITE_CONTACT.workingHours}</p>
+            <dl className="contact-card-hours">
+              {CONSULTATION_HOURS.map((row) => (
+                <div key={row.day} className="contact-card-hours-row">
+                  <dt>
+                    <span className="sr-only">{row.day}</span>
+                    <span aria-hidden="true">{row.shortDay}</span>
+                  </dt>
+                  <dd>{row.time}</dd>
+                </div>
+              ))}
+            </dl>
           </StaggerItem>
         </Stagger>
       </section>

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { env } from '../config/env';
 import { HTTP_STATUS, MAX_BLOG_IMAGES, MAX_RELATED_POSTS } from '../constants';
 import {
@@ -703,9 +704,33 @@ export class BlogService {
     if (!blog) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
     }
-    await this.blogRepository.incrementViewCount(blog.id);
     const related = await this.blogRelatedRepository.listPublishedByBlogId(blog.id);
     return this.toPublicDetail(blog, related);
+  }
+
+  async recordView(slug: string, ip: string, viewKey: string) {
+    const blog = await this.blogRepository.findPublishedBySlug(slug);
+    if (!blog) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Blog not found');
+    }
+
+    const now = new Date();
+    const windowStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    const visitorHash = crypto
+      .createHash('sha256')
+      .update(`${ip}:${blog.id}:${windowStart.getTime()}`)
+      .digest('hex');
+
+    const counted = await this.blogRepository.recordView(blog.id, visitorHash, viewKey, windowStart);
+    
+    const refreshed = await this.blogRepository.findById(blog.id);
+
+    return {
+      success: true,
+      counted,
+      viewCount: refreshed?.viewCount ?? blog.viewCount,
+    };
   }
 
   async getShareLinks(slug: string): Promise<BlogShareLinks> {

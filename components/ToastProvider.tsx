@@ -2,6 +2,7 @@
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { MAX_VISIBLE_TOASTS } from '@/lib/toast';
 
 export function ToastProvider() {
   return (
@@ -14,6 +15,7 @@ export function ToastProvider() {
       draggable
       pauseOnHover
       theme="colored"
+      limit={MAX_VISIBLE_TOASTS}
     />
   );
 }

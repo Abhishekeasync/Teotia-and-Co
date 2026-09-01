@@ -14,7 +14,7 @@ export function validateName(name: string): string | null {
 
 export function validateEmail(email: string): string | null {
   const trimmed = email.trim();
-  if (!trimmed) return 'Please enter a valid email address.';
+  if (!trimmed) return 'Email is required';
   if (trimmed.length > 255) return 'Email must be less than 255 characters';
   if (
     trimmed.includes('..') ||
@@ -24,7 +24,7 @@ export function validateEmail(email: string): string | null {
     trimmed.includes('.@') ||
     !EMAIL_REGEX.test(trimmed)
   ) {
-    return 'Please enter a valid email address.';
+    return 'Please enter a valid email.';
   }
   return null;
 }
@@ -94,4 +94,76 @@ export function validateComment(comment: string): string | null {
   if (trimmed.length < 2) return 'Comment must be at least 2 characters';
   if (trimmed.length > 1000) return 'Comment must be less than 1000 characters';
   return null;
+}
+
+/** Job description (About this role) — stored as LONGTEXT. */
+export const JOB_ABOUT_ROLE_MIN = 20;
+export const JOB_ABOUT_ROLE_MAX = 10_000;
+
+/** Key responsibilities — optional LONGTEXT. */
+export const JOB_RESPONSIBILITIES_MIN = 20;
+export const JOB_RESPONSIBILITIES_MAX = 10_000;
+
+/** Requirements — optional LONGTEXT. */
+export const JOB_REQUIREMENTS_MIN = 20;
+export const JOB_REQUIREMENTS_MAX = 10_000;
+
+/** Required skills — optional LONGTEXT. */
+export const JOB_REQUIRED_SKILLS_MIN = 10;
+export const JOB_REQUIRED_SKILLS_MAX = 2_000;
+
+function validateOptionalJobText(
+  value: string,
+  min: number,
+  max: number,
+  label: string,
+): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (trimmed.length < min) {
+    return `${label} must be at least ${min} characters.`;
+  }
+  if (trimmed.length > max) {
+    return `${label} must be less than ${max} characters.`;
+  }
+  return null;
+}
+
+export function validateJobAboutRole(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return 'Please enter about this role.';
+  if (trimmed.length < JOB_ABOUT_ROLE_MIN) {
+    return `About this role must be at least ${JOB_ABOUT_ROLE_MIN} characters.`;
+  }
+  if (trimmed.length > JOB_ABOUT_ROLE_MAX) {
+    return `About this role must be less than ${JOB_ABOUT_ROLE_MAX} characters.`;
+  }
+  return null;
+}
+
+export function validateJobResponsibilities(value: string): string | null {
+  return validateOptionalJobText(
+    value,
+    JOB_RESPONSIBILITIES_MIN,
+    JOB_RESPONSIBILITIES_MAX,
+    'Key responsibilities',
+  );
+}
+
+export function validateJobRequirements(value: string): string | null {
+  return validateOptionalJobText(
+    value,
+    JOB_REQUIREMENTS_MIN,
+    JOB_REQUIREMENTS_MAX,
+    'Requirements',
+  );
+}
+
+export function validateJobRequiredSkills(value: string): string | null {
+  return validateOptionalJobText(
+    value,
+    JOB_REQUIRED_SKILLS_MIN,
+    JOB_REQUIRED_SKILLS_MAX,
+    'Required skills',
+  );
 }

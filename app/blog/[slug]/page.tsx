@@ -15,6 +15,7 @@ import { ApiBlogDetailResponse } from '@/lib/api/types';
 import { normalizeApiBlog } from '@/lib/api/normalize';
 import { buildFallbackShareLinks } from '@/lib/api/shareLinks';
 import { sanitizeHtml } from '@/lib/utils/sanitize';
+import { BlogViewTracker } from '@/components/blog/BlogViewTracker';
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -68,6 +69,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <>
+      <BlogViewTracker slug={slug} />
       <div
         className={`blog-post-layout${hasRelatedPosts ? '' : ' blog-post-layout--centered'}`}
       >

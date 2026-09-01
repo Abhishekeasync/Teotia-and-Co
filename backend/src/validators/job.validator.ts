@@ -1,8 +1,48 @@
 import { z } from 'zod';
+import {
+  JOB_ABOUT_ROLE_MAX,
+  JOB_ABOUT_ROLE_MIN,
+  JOB_REQUIRED_SKILLS_MAX,
+  JOB_REQUIRED_SKILLS_MIN,
+  JOB_REQUIREMENTS_MAX,
+  JOB_REQUIREMENTS_MIN,
+  JOB_RESPONSIBILITIES_MAX,
+  JOB_RESPONSIBILITIES_MIN,
+} from '../constants';
 import { JobStatus, WorkMode } from '../interfaces/job.interface';
 
 const WorkModeEnum: [WorkMode, ...WorkMode[]] = ['On-site', 'Hybrid', 'Remote'];
 const JobStatusEnum: [JobStatus, ...JobStatus[]] = ['draft', 'published', 'closed'];
+
+const emptyToNull = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  const trimmed = String(value).trim();
+  return trimmed === '' ? null : trimmed;
+};
+
+const requiredJobTextSchema = (min: number, max: number, label: string) =>
+  z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() : value),
+    z
+      .string()
+      .min(1, `Please enter ${label.toLowerCase()}.`)
+      .min(min, `${label} must be at least ${min} characters.`)
+      .max(max, `${label} must be less than ${max} characters.`),
+  );
+
+const optionalJobTextSchema = (min: number, max: number, label: string) =>
+  z.preprocess(
+    emptyToNull,
+    z
+      .union([
+        z.null(),
+        z
+          .string()
+          .min(min, `${label} must be at least ${min} characters.`)
+          .max(max, `${label} must be less than ${max} characters.`),
+      ])
+      .optional(),
+  );
 
 export const adminJobListQuerySchema = z.object({
   page: z.unknown().optional(),
@@ -31,14 +71,26 @@ export const createJobSchema = z.object({
   experienceRequired: z.string().max(100).nullable().optional(),
   salaryCtc: z.string().max(100).nullable().optional(),
   numberOfOpenings: z.number().int().min(1).nullable().optional(),
-  description: z
-    .string()
-    .trim()
-    .min(1, 'Please enter the job description.')
-    .min(20, 'Job description must be at least 20 characters.'),
-  responsibilities: z.string().nullable().optional(),
-  requirements: z.string().nullable().optional(),
-  requiredSkills: z.string().nullable().optional(),
+  description: requiredJobTextSchema(
+    JOB_ABOUT_ROLE_MIN,
+    JOB_ABOUT_ROLE_MAX,
+    'About this role',
+  ),
+  responsibilities: optionalJobTextSchema(
+    JOB_RESPONSIBILITIES_MIN,
+    JOB_RESPONSIBILITIES_MAX,
+    'Key responsibilities',
+  ),
+  requirements: optionalJobTextSchema(
+    JOB_REQUIREMENTS_MIN,
+    JOB_REQUIREMENTS_MAX,
+    'Requirements',
+  ),
+  requiredSkills: optionalJobTextSchema(
+    JOB_REQUIRED_SKILLS_MIN,
+    JOB_REQUIRED_SKILLS_MAX,
+    'Required skills',
+  ),
   status: z.enum(JobStatusEnum).default('draft'),
 });
 

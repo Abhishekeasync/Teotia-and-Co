@@ -1231,7 +1231,9 @@
 }
 
 .admin-field input.field-invalid:not([type='checkbox']):not([type='radio']):not([type='file']),
-.admin-field textarea.field-invalid {
+.admin-field textarea.field-invalid,
+.admin-field select.field-invalid,
+.admin-field .rich-text-editor.field-invalid {
   border-color: #d92d20;
   box-shadow: 0 0 0 3px rgba(217, 45, 32, 0.12);
 }

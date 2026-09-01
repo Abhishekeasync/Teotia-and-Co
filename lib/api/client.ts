@@ -187,6 +187,12 @@ export const publicApi = {
       fetchApi(`/blogs/${slug}`, { revalidate: 300, tags: ['blog-detail', `blog:${slug}`] }),
 
     getShareLinks: (slug: string) => fetchApi(`/blogs/${slug}/share`),
+
+    recordView: (slug: string, viewKey: string) =>
+      fetchApi(`/blogs/${slug}/view`, {
+        method: 'POST',
+        body: JSON.stringify({ viewKey }),
+      }),
   },
 
   // Author APIs
