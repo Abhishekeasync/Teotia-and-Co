@@ -46,13 +46,13 @@ export const approveComment = asyncHandler(async (req: Request, res: Response) =
   return ApiResponse.success(res, { comment }, 'Comment approved');
 });
 
-/** Admin: Reject a comment (also soft-deletes it). */
+/** Admin: Reject a comment (hidden from public, kept in admin Rejected list). */
 export const rejectComment = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as { id: string };
 
   const comment = await commentService.rejectComment(Number(id));
 
-  return ApiResponse.success(res, { comment }, 'Comment rejected and deleted');
+  return ApiResponse.success(res, { comment }, 'Comment rejected');
 });
 
 /** Admin: Delete a comment. */
