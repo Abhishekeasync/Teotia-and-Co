@@ -540,8 +540,6 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       // Bust the Next.js public-facing ISR cache so visitors see the change immediately.
       await revalidateBlogs();
 
-      toast.success(saveSuccessMessage(effectivePublishType, isEdit));
-
       clearBlogDraft(blogId);
       // Disarm the navigation guard before the hard navigation below. The form
       // fields still hold the submitted content, so isDirty() would otherwise
@@ -550,7 +548,8 @@ export function BlogForm({ blogId, initial }: BlogFormProps) {
       discardChanges();
       // Hard-navigate to bypass the Next.js Router Cache so the blogs list
       // always re-fetches fresh data after a save.
-      window.location.href = '/admin/blogs';
+      const message = encodeURIComponent(saveSuccessMessage(effectivePublishType, isEdit));
+      window.location.href = `/admin/blogs?success=${message}`;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save blog');
     } finally {

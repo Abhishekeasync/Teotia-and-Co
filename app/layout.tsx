@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import { PublicShell } from "@/components/PublicShell";
 import { ToastProvider } from "@/components/ToastProvider";
+import { FlashToast } from "@/components/FlashToast";
 
 export const metadata: Metadata = {
   title: "TEOTIA & CO. | Chartered Accountants",
@@ -30,6 +32,9 @@ export default function RootLayout({
       <body>
         <PublicShell footer={<Footer />}>{children}</PublicShell>
         <ToastProvider />
+        <Suspense>
+          <FlashToast />
+        </Suspense>
       </body>
     </html>
   );

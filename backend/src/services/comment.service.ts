@@ -145,8 +145,9 @@ export class CommentService {
   }
 
   /**
-   * Admin: Reject a comment and soft-delete it.
-   * Rejected comments are marked as 'rejected' for audit trail, then soft-deleted.
+   * Admin: Reject a comment. It stays in the admin Rejected list and is
+   * hidden from the public blog (public listing is approved-only).
+   * Soft-delete is reserved for the Delete action.
    */
   async rejectComment(id: number): Promise<AdminComment> {
     const comment = await this.commentRepository.findById(id);
@@ -158,27 +159,29 @@ export class CommentService {
       throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'Comment is already rejected');
     }
 
-    const blog = await this.blogRepository.findById(comment.blogId);
+    await this.commentRepository.updateStatus(id, 'rejected');
+
+    const updated = await this.commentRepository.findById(id);
+    if (!updated) {
+      throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Comment not found');
+    }
+
+    const blog = await this.blogRepository.findById(updated.blogId);
     if (!blog) {
       throw new ApiError(HTTP_STATUS.NOT_FOUND, 'Associated blog not found');
     }
 
-    // Set status to rejected for audit trail, then soft-delete
-    await this.commentRepository.updateStatus(id, 'rejected');
-    await this.commentRepository.softDelete(id);
-
-    // Return the comment details before deletion (for confirmation to admin)
     return {
-      id: comment.id,
-      blogId: comment.blogId,
+      id: updated.id,
+      blogId: updated.blogId,
       blogSlug: blog.slug,
       blogHeading: blog.heading,
-      name: comment.name,
-      email: comment.email,
-      comment: comment.comment,
-      status: 'rejected',
-      approvedAt: null,
-      createdAt: comment.createdAt.toISOString(),
+      name: updated.name,
+      email: updated.email,
+      comment: updated.comment,
+      status: updated.status,
+      approvedAt: updated.approvedAt ? updated.approvedAt.toISOString() : null,
+      createdAt: updated.createdAt.toISOString(),
     };
   }
 

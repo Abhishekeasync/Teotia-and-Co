@@ -123,10 +123,8 @@ export function JobForm({ initialData }: JobFormProps) {
 
       if (isEdit && initialData?.id) {
         await adminApi.jobs.update(initialData.id, payload);
-        toast.success('Job updated successfully');
       } else {
         await adminApi.jobs.create(payload);
-        toast.success('Job created successfully');
       }
 
       // Bust the public ISR cache so the careers page reflects the change immediately.
@@ -134,7 +132,10 @@ export function JobForm({ initialData }: JobFormProps) {
 
       // Hard-navigate to bypass the Next.js Router Cache, guaranteeing the jobs
       // list re-fetches fresh data instead of serving a stale cached shell.
-      window.location.href = '/admin/jobs';
+      const message = encodeURIComponent(
+        isEdit ? 'Job updated successfully' : 'Job created successfully'
+      );
+      window.location.href = `/admin/jobs?success=${message}`;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save job');
     } finally {

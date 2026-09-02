@@ -1,6 +1,6 @@
 /**
  * Comments on blog posts — submitted by public visitors, moderated by admin.
- * Status flow: pending → approved|rejected (soft-delete for removal).
+ * Status flow: pending → approved|rejected. Soft-delete is a separate removal.
  */
 
 export type CommentStatus = 'pending' | 'approved' | 'rejected';
