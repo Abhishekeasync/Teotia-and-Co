@@ -1,0 +1,247 @@
+.author-stack {
+  --author-size: 36px;
+  --author-stacked-step: calc(var(--author-size) * 0.36);
+  --author-expanded-step: calc(var(--author-size) + 10px);
+  --author-slots: 1;
+  --author-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --author-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  overflow: visible;
+  height: calc(var(--author-size) + 6px);
+  width: calc(
+    var(--author-size) + (var(--author-slots) - 1) * var(--author-expanded-step) + 6px
+  );
+  max-width: 100%;
+  padding: 3px;
+  margin: 0;
+  list-style: none;
+}
+
+.author-stack-slot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: var(--author-expanded-step);
+  height: var(--author-size);
+  z-index: calc(var(--author-slots) - var(--i));
+  transform: translate3d(calc(var(--i) * var(--author-stacked-step)), 0, 0);
+  transform-origin: center center;
+  transition:
+    transform 240ms var(--author-ease-in),
+    filter 200ms ease;
+  transition-delay: calc((var(--author-slots) - 1 - var(--i)) * 14ms);
+}
+
+.author-stack.is-open .author-stack-slot,
+.author-stack:focus-within .author-stack-slot {
+  transform: translate3d(calc(var(--i) * var(--author-expanded-step)), 0, 0);
+  transition-timing-function: var(--author-ease-out);
+  transition-duration: 280ms;
+  transition-delay: calc(var(--i) * 22ms);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .author-stack:hover .author-stack-slot {
+    transform: translate3d(calc(var(--i) * var(--author-expanded-step)), 0, 0);
+    transition-timing-function: var(--author-ease-out);
+    transition-duration: 280ms;
+    transition-delay: calc(var(--i) * 22ms);
+  }
+
+  .author-stack:hover .author-stack-slot,
+  .author-stack.is-open .author-stack-slot,
+  .author-stack:focus-within .author-stack-slot {
+    will-change: transform;
+  }
+}
+
+.author-stack-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--author-size);
+  height: var(--author-size);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 0 0 2px #fff;
+  transform: scale(1);
+  transform-origin: center center;
+  transition:
+    transform 180ms var(--author-ease-out),
+    box-shadow 180ms var(--author-ease-out);
+}
+
+.author-stack-trigger:focus {
+  outline: none;
+}
+
+.author-stack-trigger:focus-visible {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--green-hex, #08085e);
+}
+
+.author-stack-slot.is-active .author-stack-trigger,
+.author-stack-slot:hover .author-stack-trigger,
+.author-stack-slot:focus-within .author-stack-trigger {
+  z-index: 20;
+  transform: scale(1.07);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 8px 18px rgba(8, 8, 94, 0.16);
+}
+
+.author-stack-slot.is-active,
+.author-stack-slot:hover,
+.author-stack-slot:focus-within {
+  z-index: 20;
+}
+
+.author-stack-face {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.author-stack-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: #eeeff8;
+  color: var(--heading-color, #08085e);
+  font-size: calc(var(--author-size) * 0.36);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.author-stack-overflow {
+  background: #eeeff8;
+  color: var(--heading-color, #08085e);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.author-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  max-width: min(16.5rem, calc(100vw - 1.5rem));
+  padding: 0.55rem 0.8rem 0.5rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 12px 32px rgba(8, 8, 94, 0.14),
+    0 2px 8px rgba(8, 8, 94, 0.06);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: opacity 160ms ease;
+}
+
+.author-tooltip.is-ready {
+  opacity: 1;
+}
+
+.author-tooltip.is-ready.is-moving {
+  transition:
+    opacity 160ms ease,
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.author-tooltip-name {
+  display: block;
+  color: var(--heading-color, #08085e);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.author-tooltip-role {
+  display: block;
+  margin-top: 0.15rem;
+  color: rgba(8, 8, 94, 0.62);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.author-tooltip-caret {
+  position: absolute;
+  left: var(--caret-x, 50%);
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  box-shadow: 2px 2px 6px rgba(8, 8, 94, 0.08);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.author-tooltip[data-side='top'] .author-tooltip-caret {
+  bottom: -4px;
+}
+
+.author-tooltip[data-side='bottom'] .author-tooltip-caret {
+  top: -4px;
+  box-shadow: -2px -2px 6px rgba(8, 8, 94, 0.06);
+  transform: translateX(-50%) rotate(225deg);
+}
+
+@media (min-width: 768px) {
+  .author-stack {
+    --author-expanded-step: calc(var(--author-size) + 12px);
+  }
+}
+
+@media (max-width: 640px) {
+  .author-stack {
+    --author-expanded-step: calc(var(--author-size) + 8px);
+    --author-stacked-step: calc(var(--author-size) * 0.34);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .author-stack-slot,
+  .author-stack.is-open .author-stack-slot,
+  .author-stack:focus-within .author-stack-slot {
+    transition: box-shadow 160ms ease;
+    transition-delay: 0ms;
+    transform: translate3d(calc(var(--i) * var(--author-stacked-step)), 0, 0);
+    will-change: auto;
+  }
+
+  .author-stack-trigger,
+  .author-stack-slot.is-active .author-stack-trigger,
+  .author-stack-slot:hover .author-stack-trigger,
+  .author-stack-slot:focus-within .author-stack-trigger {
+    transform: none;
+    transition: box-shadow 160ms ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .author-stack:hover .author-stack-slot {
+      transform: translate3d(calc(var(--i) * var(--author-stacked-step)), 0, 0);
+      transition-delay: 0ms;
+    }
+  }
+
+  .author-tooltip,
+  .author-tooltip.is-ready,
+  .author-tooltip.is-ready.is-moving {
+    transition: opacity 120ms ease;
+  }
+}

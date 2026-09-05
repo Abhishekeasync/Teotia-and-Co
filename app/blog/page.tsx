@@ -8,6 +8,12 @@ import { mapApiBlogsToPost } from '@/lib/api/mappers';
 
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'Insights | TEOTIA & CO.',
+  description:
+    'Explore expert insights, practical tips, and up-to-date guidance on accounting, taxation, and financial management.',
+};
+
 type BlogPageProps = {
   searchParams: Promise<{ tag?: string; author?: string }>;
 };
@@ -53,7 +59,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       <section className="about-hero">
         <div className="about-hero-content">
           <HeroReveal delay={0}>
-            <h1 className="blog-hero-title">Financial Insights Blog</h1>
+            <h1 className="blog-hero-title">Financial Insights</h1>
           </HeroReveal>
           <HeroReveal delay={0.08}>
             <p className="about-hero-sub">
@@ -64,7 +70,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
             <nav className="about-breadcrumb" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
               <span className="breadcrumb-sep">/</span>
-              <span className="breadcrumb-current">Blog</span>
+              <span className="breadcrumb-current">Insights</span>
             </nav>
           </HeroReveal>
         </div>

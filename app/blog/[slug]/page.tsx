@@ -76,7 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <article className="blog-post-page">
           <div className="blog-post-inner">
             <Link href="/blog" className="blog-all-posts">
-              ← All Posts
+              ← All Insights
             </Link>
 
             <h1 className="blog-post-title">{blog.heading}</h1>
@@ -103,8 +103,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   authorAvatar={post.authorAvatar}
                   authors={post.authors}
                   avatarSize={48}
-                  nameClassName="blog-author-name hover:text-brand transition-colors"
-                  showDesignation={(post.authors?.length ?? 0) === 1}
                 />
               </div>
 

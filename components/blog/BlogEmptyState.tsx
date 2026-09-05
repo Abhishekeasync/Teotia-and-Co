@@ -24,7 +24,7 @@ export function BlogEmptyState({
       </p>
       {showClearFilter && (
         <Link href="/blog" className="blog-filter-clear blog-filter-clear--button">
-          View all posts
+          View all insights
         </Link>
       )}
     </div>

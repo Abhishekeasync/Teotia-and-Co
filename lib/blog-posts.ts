@@ -27,6 +27,8 @@ const IMAGES = {
   planning: '/assets/images/static.wixstatic.com/f8f680_5dd961864da04fb2b40c73ba6fe42c65-mv2.jpg',
 } as const;
 
+export const FALLBACK_BLOG_IMAGE = IMAGES.accounting;
+
 function post(
   title: string,
   slug: string,

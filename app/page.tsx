@@ -303,7 +303,8 @@ export default function Home() {
                     src={member.src}
                     alt={member.name}
                     fill
-                    sizes="(max-width: 768px) 50vw, 20vw"
+                    quality={100}
+                    sizes="(max-width: 480px) 92vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
                     style={{ objectFit: 'cover', objectPosition: 'top center' }}
                   />
                 </div>
@@ -334,7 +335,7 @@ export default function Home() {
           <Reveal delay={0.12} className="mt-10 lg:mt-12 text-left max-w-[76rem] mx-auto px-[clamp(1.25rem,4vw,2rem)]">
             {loadingBlogs ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
-                Loading latest posts...
+                Loading latest insights...
               </div>
             ) : (
               <BlogGrid posts={blogPosts} infiniteScroll={false} />

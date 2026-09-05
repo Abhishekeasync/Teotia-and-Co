@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { PaperPlaneTilt } from '@phosphor-icons/react/dist/ssr';
 import { toast } from '@/lib/toast';
 import { publicApi, ApiClientError } from '@/lib/api/client';
 import { validateEmail } from '@/lib/validation';
@@ -46,20 +47,28 @@ export default function NewsletterForm({ source = 'footer', className = 'footer-
   };
 
   return (
-    <form className={className} onSubmit={handleSubmit} suppressHydrationWarning>
+    <form
+      className={className}
+      onSubmit={handleSubmit}
+      aria-busy={loading}
+      suppressHydrationWarning
+    >
       <input
         type="email"
         value={email}
         onChange={(event) => setEmail(event.target.value)}
-        placeholder="Your email address"
+        placeholder="your@email.com"
         aria-label="Email address for newsletter"
+        autoComplete="email"
+        inputMode="email"
         maxLength={255}
         disabled={loading}
         required
         suppressHydrationWarning
       />
       <button type="submit" disabled={loading} suppressHydrationWarning>
-        {loading ? 'Subscribing...' : 'Subscribe'}
+        <span>{loading ? 'Subscribing' : 'Subscribe'}</span>
+        <PaperPlaneTilt size={16} weight="bold" aria-hidden="true" />
       </button>
     </form>
   );
