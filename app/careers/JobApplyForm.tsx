@@ -246,7 +246,7 @@ export function JobApplyForm({ job }: Props) {
               value={formData.name}
               onChange={handleChange}
               onBlur={() => handleBlur('name', validateName)}
-              placeholder="Rahul Sharma"
+              placeholder=""
               maxLength={255}
               minLength={3}
               autoComplete="name"
@@ -273,7 +273,7 @@ export function JobApplyForm({ job }: Props) {
               value={formData.email}
               onChange={handleChange}
               onBlur={() => handleBlur('email', validateEmail)}
-              placeholder="rahul@gmail.com"
+              placeholder=""
               maxLength={255}
               autoComplete="email"
               required
@@ -310,7 +310,7 @@ export function JobApplyForm({ job }: Props) {
                   const phoneErr = validatePhone(formData.phone);
                   setErrors((prev) => ({ ...prev, phone: phoneErr ?? '' }));
                 }}
-                placeholder="98765 43210"
+                placeholder=""
                 maxLength={10}
                 minLength={10}
                 autoComplete="tel-national"
@@ -341,7 +341,7 @@ export function JobApplyForm({ job }: Props) {
               value={formData.currentLocation}
               onChange={handleChange}
               onBlur={() => handleBlur('currentLocation', validateLocation)}
-              placeholder="Noida"
+              placeholder=""
               maxLength={255}
               minLength={3}
               autoComplete="address-level2"
@@ -371,7 +371,7 @@ export function JobApplyForm({ job }: Props) {
               value={formData.experienceYears}
               onChange={handleExperienceChange}
               onBlur={() => handleBlur('experienceYears', validateExperienceYears)}
-              placeholder="e.g. 1.5"
+              placeholder=""
               required
               aria-required="true"
               aria-invalid={errors.experienceYears ? true : undefined}

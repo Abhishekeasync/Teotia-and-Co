@@ -85,7 +85,8 @@ export default function AboutPage() {
                     src={member.src}
                     alt={member.name}
                     fill
-                    sizes="(max-width: 768px) 50vw, 20vw"
+                    quality={100}
+                    sizes="(max-width: 480px) 92vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
                     style={{ objectFit: 'cover', objectPosition: 'top center' }}
                   />
                 </div>

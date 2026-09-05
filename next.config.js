@@ -8,6 +8,8 @@ const nextConfig = {
   images: {
     // Allow Next.js Image optimization
     unoptimized: false,
+    // Next 16 defaults to [75] only; portraits need a lossless-adjacent tier
+    qualities: [75, 100],
     // Add S3 bucket domains for remote images
     remotePatterns: [
       {

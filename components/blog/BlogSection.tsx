@@ -34,7 +34,7 @@ export function BlogSection({
 
         {showHeader && (
           <header className="blog-insights-header">
-            <p className="blog-insights-eyebrow">Blog</p>
+            <p className="blog-insights-eyebrow">Insights</p>
             <h2 id="blog-insights-heading" className="blog-insights-title">
               {title}
             </h2>
@@ -53,7 +53,7 @@ export function BlogSection({
             }
             message={
               hasActiveFilter
-                ? 'Try another filter or view all blog posts.'
+                ? 'Try another filter or view all insights.'
                 : undefined
             }
             showClearFilter={hasActiveFilter}

@@ -68,7 +68,7 @@ export default async function AuthorProfilePage({ params }: AuthorPageProps) {
         <div className="container-narrow">
           <nav className="mb-8 text-sm text-gray-500" aria-label="Breadcrumb">
             <Link href="/blog" className="hover:text-brand transition-colors">
-              Blog
+              Insights
             </Link>
             <span className="mx-2 text-gray-300" aria-hidden="true">
               /

@@ -39,7 +39,7 @@ export async function BlogRecentPostsSection({ slug }: BlogRecentPostsSectionPro
         <div className="blog-recent-header">
           <h2>Recent Posts</h2>
           <Link href="/blog" className="blog-see-all">
-            See All
+            All Insights
           </Link>
         </div>
         <Stagger className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">

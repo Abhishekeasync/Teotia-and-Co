@@ -3,7 +3,7 @@
  * Bridges the gap between backend API and existing UI components
  */
 
-import { BlogPost } from '../blog-posts';
+import { BlogPost, FALLBACK_BLOG_IMAGE } from '../blog-posts';
 import { ApiBlog, ApiRelatedPost } from './types';
 import { normalizeTagNames } from './normalize';
 
@@ -55,7 +55,7 @@ export function mapApiBlogToPost(apiBlog: ApiBlog): BlogPost {
     title: apiBlog.heading || 'Untitled',
     excerpt: apiBlog.shortDescription || '',
     content: [apiBlog.shortDescription || '', apiBlog.body || ''],
-    image: apiBlog.featuredImageUrl || '/assets/images/placeholder.jpg',
+    image: apiBlog.featuredImageUrl || FALLBACK_BLOG_IMAGE,
     author: primaryAuthorName,
     authorAvatar: primaryAuthorAvatar,
     authors: apiBlog.authors,
@@ -80,7 +80,7 @@ export function mapRelatedPostToBlogPost(related: ApiRelatedPost): BlogPost {
     title: related.heading,
     excerpt: related.shortDescription,
     content: [related.shortDescription],
-    image: related.featuredImageUrl || '/assets/images/placeholder.jpg',
+    image: related.featuredImageUrl || FALLBACK_BLOG_IMAGE,
     author: 'TEOTIA & CO.',
     authorAvatar:
       '/assets/images/static.wixstatic.com/d8ab7d3a-12ec-4da4-96ad-a9761e57c1f0_edited-4fa8dd2ff7.png',

@@ -404,6 +404,8 @@
   object-fit: cover;
   object-position: top center;
   display: block;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .team-meet .team-card-body {
