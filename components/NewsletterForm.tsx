@@ -66,8 +66,13 @@ export default function NewsletterForm({ source = 'footer', className = 'footer-
         required
         suppressHydrationWarning
       />
-      <button type="submit" disabled={loading} suppressHydrationWarning>
-        <span>{loading ? 'Subscribing' : 'Subscribe'}</span>
+      <button
+        type="submit"
+        disabled={loading}
+        aria-label={loading ? 'Subscribing' : 'Subscribe'}
+        suppressHydrationWarning
+      >
+        <span className="footer-newsletter-label">{loading ? 'Subscribing' : 'Subscribe'}</span>
         <PaperPlaneTilt size={16} weight="bold" aria-hidden="true" />
       </button>
     </form>

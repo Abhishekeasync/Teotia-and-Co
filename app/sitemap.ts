@@ -1,20 +1,7 @@
 import { MetadataRoute } from 'next';
+import { getAllServiceSlugs } from '@/lib/services';
 
 const BASE_URL = 'https://www.teotiaco.com';
-
-// Static service slugs — sourced from lib/services.ts
-const SERVICE_SLUGS = [
-  'company-incorporation',
-  'corporate-secretarial',
-  'fdi-fema-advisory',
-  'regulatory-approvals',
-  'ma-transaction-advisory',
-  'contracts-agreements',
-  'startup-msme-advisory',
-  'ipr-protection',
-  'taxation-accounting',
-  'corporate-restructuring',
-];
 
 // Fetch dynamic blog slugs from API
 async function getBlogSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
@@ -107,7 +94,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // ── Service detail pages ──────────────────────────────────
-  const servicePages: MetadataRoute.Sitemap = SERVICE_SLUGS.map((slug) => ({
+  const servicePages: MetadataRoute.Sitemap = getAllServiceSlugs().map((slug) => ({
     url: `${BASE_URL}/services/${slug}`,
     lastModified: '2026-09-04',
     changeFrequency: 'monthly' as const,
