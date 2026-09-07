@@ -312,10 +312,10 @@ function ContactPageContent() {
         <div className="contact-form-layout">
           <Reveal className="contact-form-image">
             <Image
-              src="/assets/images/static.wixstatic.com/download-2-jfif.jpg"
-              alt="Professional handshake during a business meeting"
-              width={600}
-              height={800}
+              src="/assets/images/melinda-gimpel-5Ne6mMQtIdo-unsplash.jpg"
+              alt="Wooden letter tiles spelling CONTACT on a blue background"
+              width={1037}
+              height={691}
               priority
             />
           </Reveal>

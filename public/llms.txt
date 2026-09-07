@@ -1,0 +1,89 @@
+# llms.txt - Machine-readable site structure for AI systems
+# TEOTIA & CO. - Chartered Accountants
+# https://www.teotiaco.com/
+
+# About
+TEOTIA & CO. is a chartered accountancy firm based in Noida, Uttar Pradesh, India, providing expert services in taxation, audit, corporate finance, and regulatory compliance.
+
+## Contact Information
+- Address: F2, Block-F, Sector-8, Noida, U.P., 201301
+- Phone: +91 8287858780
+- Email: info@teotiaco.com
+- Website: https://www.teotiaco.com
+
+## Services
+
+### Company Incorporation & Business Setup Services
+URL: /services/company-incorporation
+We assist entrepreneurs, startups, and investors in establishing businesses through seamless incorporation and registration services.
+
+### Corporate Secretarial Compliance & Advisory
+URL: /services/corporate-secretarial
+Our firm helps organizations maintain compliance with corporate laws and governance requirements.
+
+### FDI, FEMA & Cross-Border Investment Advisory
+URL: /services/fdi-fema-advisory
+We advise domestic and international clients on foreign investment regulations and cross-border transactions.
+
+### Regulatory Approvals & Government Liaison
+URL: /services/regulatory-approvals
+We assist businesses in obtaining various registrations, licenses, approvals, and regulatory clearances.
+
+### M&A and Transaction Advisory Services
+URL: /services/ma-transaction-advisory
+Expert advisory for mergers, acquisitions, and corporate restructuring transactions.
+
+### Contracts & Commercial Agreements
+URL: /services/contracts-agreements
+Professional assistance with drafting, reviewing, and negotiating contracts and commercial agreements.
+
+### Startup, MSME & Business Growth Advisory
+URL: /services/startup-msme-advisory
+Specialized advisory services for startups and small-to-medium enterprises.
+
+### IPR Protection Services
+URL: /services/ipr-protection
+Intellectual property rights protection including trademark, copyright, and patent services.
+
+### Taxation, Accounting & Compliance Support
+URL: /services/taxation-accounting
+Comprehensive taxation services including income tax, GST, TDS, and accounting support.
+
+### Corporate Restructuring, Due Diligence
+URL: /services/corporate-restructuring
+Expert guidance on corporate restructuring, mergers, demergers, and due diligence.
+
+## Team
+
+### Shubham Teotia
+Chartered Accountant
+Partner at TEOTIA & CO.
+
+### Rahul Chaudhary
+Chartered Accountant
+Partner at TEOTIA & CO.
+
+### Shefali Teotia
+Partner
+Partner at TEOTIA & CO.
+
+### Kunal Teotia
+Company Secretary
+Partner at TEOTIA & CO.
+
+### Shaurya Nijhawan
+Chartered Accountant
+Partner at TEOTIA & CO.
+
+## Areas Served
+Noida, Greater Noida, Delhi NCR, India, and international clients
+
+## Key Pages
+- Homepage: /
+- About Us: /about
+- Services: /services
+- Blog: /blog
+- Careers: /careers
+- Contact: /contact
+- Privacy Policy: /privacy-policy
+- Terms of Service: /terms-of-service

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { EnvelopeSimple, MapPin, Phone } from '@phosphor-icons/react/dist/ssr';
 import NewsletterForm from '@/components/NewsletterForm';
 import { buildConsultationUrl } from '@/lib/consultation';
 import { SITE_CONTACT } from '@/lib/site';
@@ -48,11 +49,20 @@ export default function Footer() {
             ))}
           </nav>
 
-          <div className="footer-col">
+          <div className="footer-col footer-col--contact">
             <h3>Contact</h3>
-            <a href={`mailto:${SITE_CONTACT.email}`}>{SITE_CONTACT.email}</a>
-            <a href={`tel:${SITE_CONTACT.phoneTel}`}>{SITE_CONTACT.phoneDisplay}</a>
-            <Link href="/contact">{SITE_CONTACT.location}</Link>
+            <a href={`tel:${SITE_CONTACT.phoneTel}`} className="footer-phone">
+              <Phone size={18} weight="regular" aria-hidden />
+              <span>{SITE_CONTACT.phoneDisplay}</span>
+            </a>
+            <a href={`mailto:${SITE_CONTACT.email}`} className="footer-contact-line">
+              <EnvelopeSimple size={18} weight="regular" aria-hidden />
+              <span>{SITE_CONTACT.email}</span>
+            </a>
+            <Link href="/contact" className="footer-contact-line">
+              <MapPin size={18} weight="regular" aria-hidden />
+              <span>{SITE_CONTACT.location}</span>
+            </Link>
           </div>
         </div>
 

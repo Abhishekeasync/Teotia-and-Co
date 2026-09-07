@@ -4,7 +4,9 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { Phone } from '@phosphor-icons/react';
 import { buildConsultationUrl } from '@/lib/consultation';
+import { SITE_CONTACT } from '@/lib/site';
 import './header-footer.css';
 
 const consultationHref = buildConsultationUrl({ source: 'header' });
@@ -117,6 +119,14 @@ export default function Header() {
             </Link>
           );
         })}
+        <a
+          href={`tel:${SITE_CONTACT.phoneTel}`}
+          className="mobile-phone-link"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <Phone size={18} weight="regular" aria-hidden />
+          Call {SITE_CONTACT.phoneDisplay}
+        </a>
         <Link
           href={consultationHref}
           className="btn-consult"
