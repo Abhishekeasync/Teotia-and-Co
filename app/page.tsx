@@ -26,6 +26,7 @@ import {
   StaggerItem,
   HeroReveal,
 } from '@/components/Reveal';
+import { SchemaOrg, organizationSchema } from '@/components/SchemaOrg';
 import './page-styles.css';
 
 const testimonials = [
@@ -102,6 +103,9 @@ export default function Home() {
 
   return (
     <>
+      {/* SEO: Organization Schema */}
+      <SchemaOrg schema={organizationSchema} />
+      
       {/* HERO */}
       <section className="hero" id="home">
         <div className="hero-bg"></div>
@@ -146,7 +150,7 @@ export default function Home() {
               We are a trusted Chartered Accountancy firm delivering <strong>practical, accurate, and value-driven financial and business solutions</strong>. We help businesses navigate taxation, compliance, financial reporting, corporate advisory, and regulatory complexities while managing risks, improving efficiency, and enabling sustainable growth.
             </p>
             <div className="about-stats-box">
-              <CountUp className="stats-val" to={1250} suffix="+" />
+              <CountUp className="stats-val" from={10} to={1250} suffix="+" />
               <div className="stats-title">Successful Cases</div>
               <p className="stats-sub">Completed with accuracy, transparency, and on-time delivery.</p>
             </div>

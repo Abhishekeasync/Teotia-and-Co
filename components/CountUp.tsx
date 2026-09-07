@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 
 type CountUpProps = {
   to: number;
+  from?: number;
   className?: string;
   duration?: number;
   suffix?: string;
@@ -12,9 +13,10 @@ type CountUpProps = {
   decimals?: number;
 };
 
-/** Counts up from 0 when the element scrolls into view */
+/** Counts up from a starting value when the element scrolls into view */
 export default function CountUp({
   to,
+  from = 0,
   className,
   duration = 1.2,
   suffix = '',
@@ -23,7 +25,7 @@ export default function CountUp({
 }: CountUpProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.4 });
-  const motionValue = useMotionValue(0);
+  const motionValue = useMotionValue(from);
   const rounded = useTransform(motionValue, (latest) => {
     const value = decimals > 0 ? latest.toFixed(decimals) : Math.round(latest).toLocaleString('en-US');
     return `${prefix}${value}${suffix}`;
@@ -50,7 +52,7 @@ export default function CountUp({
 
   return (
     <div ref={ref} className={className}>
-      <span ref={displayRef}>{`${prefix}${decimals > 0 ? (0).toFixed(decimals) : '0'}${suffix}`}</span>
+      <span ref={displayRef}>{`${prefix}${decimals > 0 ? from.toFixed(decimals) : from}${suffix}`}</span>
     </div>
   );
 }

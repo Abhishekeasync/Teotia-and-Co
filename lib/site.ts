@@ -7,6 +7,6 @@ export const CONSULTATION_HOURS = [
 export const SITE_CONTACT = {
   email: 'info@teotiaco.com',
   phoneDisplay: '+91 8287858780',
-  phoneTel: '+919876543210',
+  phoneTel: '+918287858780',
   location: 'F2, Block-F, Sector-8, Noida, U.P.,201301',
 } as const;
