@@ -66,41 +66,41 @@ export const organizationSchema = {
       "founder": [
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/shubham-teotia",
           "name": "Shubham Teotia",
-          "jobTitle": "Chartered Accountant"
+          "jobTitle": "Chartered Accountant",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         }
       ],
       "employee": [
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/shubham-teotia",
           "name": "Shubham Teotia",
-          "jobTitle": "Chartered Accountant"
+          "jobTitle": "Chartered Accountant",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         },
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/rahul-chaudhary",
           "name": "Rahul Chaudhary",
-          "jobTitle": "Chartered Accountant"
+          "jobTitle": "Chartered Accountant",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         },
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/shefali-teotia",
           "name": "Shefali Teotia",
-          "jobTitle": "Partner"
+          "jobTitle": "Partner",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         },
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/kunal-teotia",
           "name": "Kunal Teotia",
-          "jobTitle": "Company Secretary"
+          "jobTitle": "Company Secretary",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         },
         {
           "@type": "Person",
-          "@id": "https://www.teotiaco.com/team/shaurya-nijhawan",
           "name": "Shaurya Nijhawan",
-          "jobTitle": "Chartered Accountant"
+          "jobTitle": "Chartered Accountant",
+          "worksFor": { "@id": "https://www.teotiaco.com/#organization" }
         }
       ],
       "hasOfferCatalog": {
@@ -208,14 +208,6 @@ export const organizationSchema = {
       "description": "Chartered Accountants providing expert services in taxation, audit, corporate finance, and regulatory compliance",
       "publisher": {
         "@id": "https://www.teotiaco.com/#organization"
-      },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://www.teotiaco.com/search?q={search_term_string}"
-        },
-        "query-input": "required name=search_term_string"
       }
     }
   ]
