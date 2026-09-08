@@ -1,3 +1,5 @@
+import { getServiceBySlug, services } from './services';
+
 export const CONSULTATION_INTENT = 'consultation';
 export const DEFAULT_CONSULTATION_SERVICE =
   'Taxation, Accounting & Compliance Support';
@@ -5,19 +7,62 @@ export const CONSULTATION_SUBJECT = 'Free Consultation Request';
 export const CONSULTATION_MESSAGE_PLACEHOLDER =
   'Tell us about your business and what you would like to discuss during your free consultation...';
 
-/** Maps frontend service page slugs to backend enquiry service types. */
-const SERVICE_SLUG_TO_TYPE: Record<string, string> = {
-  'company-incorporation': 'Company Incorporation & Business Setup Services',
-  'corporate-secretarial': 'Corporate Secretarial Compliance & Advisory',
-  'fdi-fema-advisory': 'FDI, FEMA & Cross-Border Investment Advisory',
-  'regulatory-approvals': 'Regulatory Approvals & Government Liaison',
-  'ma-transaction-advisory': 'M&A and Transaction Advisory Services',
-  'contracts-agreements': 'Contracts & Commercial Agreements',
-  'startup-msme-advisory': 'Startup, MSME & Business Growth Advisory',
-  'ipr-protection': 'IPR Protection Services',
-  'taxation-accounting': 'Taxation, Accounting & Compliance Support',
-  'corporate-restructuring': 'Corporate Restructuring, Due Diligence',
+/**
+ * Reverse map: backend enquiry type → service page slug.
+ * Service titles in lib/services.ts must stay aligned with backend SERVICE_TYPES.
+ */
+const ENQUIRY_TYPE_TO_SLUG: Record<string, string> = Object.fromEntries(
+  services.map((service) => [service.title, service.slug])
+);
+
+export type ResolvedServiceParam = {
+  slug: string | null;
+  enquiryType: string | null;
 };
+
+/** Whether `slug` matches a known `/services/[slug]` route. */
+export function isValidServiceSlug(slug: string): boolean {
+  return getServiceBySlug(slug) !== undefined;
+}
+
+/**
+ * Resolve a raw `service` query value to slug + backend enquiry type.
+ * Accepts URL-safe slugs (new) or full enquiry type strings (legacy URLs).
+ */
+export function resolveServiceParam(
+  raw: string | null,
+  allowedServiceTypes: string[] = []
+): ResolvedServiceParam {
+  if (!raw?.trim()) {
+    return { slug: null, enquiryType: null };
+  }
+
+  const value = raw.trim();
+
+  if (isValidServiceSlug(value)) {
+    return {
+      slug: value,
+      enquiryType: mapServiceSlugToEnquiryType(value),
+    };
+  }
+
+  const slugFromEnquiryType = ENQUIRY_TYPE_TO_SLUG[value];
+  if (slugFromEnquiryType) {
+    return {
+      slug: slugFromEnquiryType,
+      enquiryType: value,
+    };
+  }
+
+  if (allowedServiceTypes.includes(value)) {
+    return {
+      slug: ENQUIRY_TYPE_TO_SLUG[value] ?? null,
+      enquiryType: value,
+    };
+  }
+
+  return { slug: null, enquiryType: null };
+}
 
 export type ConsultationParams = {
   isConsultation: boolean;
@@ -26,33 +71,64 @@ export type ConsultationParams = {
   source: string | null;
 };
 
-export function buildConsultationUrl(options?: {
+export type BuildConsultationUrlOptions = {
+  /** URL-safe service slug — emits `/contact?service={slug}` only. */
+  serviceSlug?: string;
+  /** Lead attribution for generic consultation CTAs (C3: kept in URL). */
   source?: string;
-  service?: string;
-}): string {
+};
+
+export function buildConsultationUrl(options?: BuildConsultationUrlOptions): string {
+  if (options?.serviceSlug) {
+    if (!isValidServiceSlug(options.serviceSlug)) {
+      throw new Error(
+        `buildConsultationUrl: unknown service slug "${options.serviceSlug}"`
+      );
+    }
+
+    const params = new URLSearchParams({ service: options.serviceSlug });
+    return `/contact?${params.toString()}`;
+  }
+
   const params = new URLSearchParams({ intent: CONSULTATION_INTENT });
 
   if (options?.source) {
     params.set('source', options.source);
   }
 
-  if (options?.service) {
-    params.set('service', options.service);
-  }
-
   return `/contact?${params.toString()}`;
 }
 
+/** Maps a service page slug to the backend enquiry dropdown value. */
 export function mapServiceSlugToEnquiryType(slug: string): string {
-  return SERVICE_SLUG_TO_TYPE[slug] ?? DEFAULT_CONSULTATION_SERVICE;
+  return getServiceBySlug(slug)?.title ?? DEFAULT_CONSULTATION_SERVICE;
+}
+
+/** Lead attribution for service CTAs — derived from slug, not exposed in the URL (C1). */
+export function deriveConsultationSourceFromSlug(slug: string): string {
+  return `service-${slug}`;
+}
+
+function resolvePrefilledServiceType(
+  serviceParam: string | null,
+  allowedTypes: string[]
+): string {
+  const resolved = resolveServiceParam(serviceParam, allowedTypes);
+
+  if (resolved.enquiryType && allowedTypes.includes(resolved.enquiryType)) {
+    return resolved.enquiryType;
+  }
+
+  return '';
 }
 
 export function resolveConsultationServiceType(
   serviceParam: string | null,
   allowedTypes: string[]
 ): string {
-  if (serviceParam && allowedTypes.includes(serviceParam)) {
-    return serviceParam;
+  const prefilled = resolvePrefilledServiceType(serviceParam, allowedTypes);
+  if (prefilled) {
+    return prefilled;
   }
 
   if (allowedTypes.includes(DEFAULT_CONSULTATION_SERVICE)) {
@@ -66,16 +142,26 @@ export function parseConsultationParams(
   searchParams: URLSearchParams,
   allowedServiceTypes: string[] = []
 ): ConsultationParams {
-  const isConsultation = searchParams.get('intent') === CONSULTATION_INTENT;
-  const source = searchParams.get('source');
+  const explicitIntent = searchParams.get('intent') === CONSULTATION_INTENT;
+  const urlSource = searchParams.get('source');
   const serviceParam = searchParams.get('service');
+
+  const resolved = resolveServiceParam(serviceParam, allowedServiceTypes);
+  const isServiceSlugUrl =
+    Boolean(resolved.slug) && serviceParam?.trim() === resolved.slug;
+  const isConsultation = explicitIntent || isServiceSlugUrl;
+
+  // C1: prefer explicit URL source (legacy); derive from slug when omitted
+  const source =
+    urlSource ??
+    (resolved.slug ? deriveConsultationSourceFromSlug(resolved.slug) : null);
 
   if (!isConsultation) {
     return {
       isConsultation: false,
-      serviceType: serviceParam && allowedServiceTypes.includes(serviceParam) ? serviceParam : '',
+      serviceType: resolvePrefilledServiceType(serviceParam, allowedServiceTypes),
       subject: '',
-      source,
+      source: urlSource,
     };
   }
 

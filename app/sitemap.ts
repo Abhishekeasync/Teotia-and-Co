@@ -57,7 +57,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/services`,
-      lastModified: '2026-09-04',
+      lastModified: '2026-09-08',
       changeFrequency: 'monthly',
       priority: 0.9,
     },
@@ -96,7 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // ── Service detail pages ──────────────────────────────────
   const servicePages: MetadataRoute.Sitemap = getAllServiceSlugs().map((slug) => ({
     url: `${BASE_URL}/services/${slug}`,
-    lastModified: '2026-09-04',
+    lastModified: '2026-09-08',
     changeFrequency: 'monthly' as const,
     priority: 0.9,
   }));

@@ -1,24 +1,25 @@
-import { Metadata } from "next";
-import { generatePageMetadata } from "@/lib/metadata";
+import { Metadata } from 'next';
+import { SchemaOrg } from '@/components/SchemaOrg';
+import { buildServicesHubSchema } from '@/lib/services';
+import { generatePageMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
-  title: "CA Services in Noida — Taxation, Compliance & Corporate Advisory",
+  title: 'CA Services in India | Tax & Compliance',
   description:
-    "Comprehensive CA services including GST, income tax, audit, corporate compliance, FDI/FEMA advisory, M&A support, company incorporation, and business restructuring in Noida and Delhi NCR.",
-  path: "/services",
+    'Expert CA services across India — GST, income tax, incorporation, FDI/FEMA, M&A, corporate compliance & startup advisory. Book a consultation.',
+  path: '/services',
   keywords: [
-    "CA services Noida",
-    "taxation services",
-    "GST compliance",
-    "income tax advisory",
-    "audit services",
-    "corporate compliance",
-    "FDI FEMA advisory",
-    "company incorporation",
-    "M&A advisory",
-    "business restructuring",
-    "IPR protection",
-    "startup advisory",
+    'CA services Noida',
+    'taxation services',
+    'GST compliance',
+    'income tax advisory',
+    'corporate compliance',
+    'FDI FEMA advisory',
+    'company incorporation',
+    'M&A advisory',
+    'business restructuring',
+    'IPR protection',
+    'startup advisory',
   ],
 });
 
@@ -27,5 +28,10 @@ export default function ServicesLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <SchemaOrg schema={buildServicesHubSchema()} />
+      {children}
+    </>
+  );
 }

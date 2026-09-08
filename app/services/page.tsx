@@ -29,11 +29,11 @@ export default function ServicesPage() {
       <section className="about-hero">
         <div className="about-hero-content">
           <HeroReveal delay={0}>
-            <h1 className="services-hero-title">Reliable Accounting Services</h1>
+            <h1 className="services-hero-title">CA &amp; Corporate Advisory Services</h1>
           </HeroReveal>
           <HeroReveal delay={0.08}>
             <p className="about-hero-sub">
-              We provide accurate, transparent, and tailored accounting services that simplify your finances, ensure compliance, and support long-term business growth.
+              Taxation, incorporation, corporate compliance, FDI/FEMA, M&A, and startup advisory for businesses across India — delivered by chartered accountants who handle structuring and compliance end to end.
             </p>
           </HeroReveal>
           <HeroReveal delay={0.16}>
@@ -51,7 +51,7 @@ export default function ServicesPage() {
         <div className="services-page-layout">
           <div className="services-header">
             <RevealText as="h2">
-              Core Accounting Services To<br />Simplify Your Finances
+              Our CA &amp; Corporate Advisory Services
             </RevealText>
           </div>
 
@@ -67,9 +67,9 @@ export default function ServicesPage() {
                         onClick={() => toggleAccordion(index)}
                       >
                         <h3>
-                          [{String(index + 1).padStart(2, '0')}] {service.title}
+                          [{String(index + 1).padStart(2, '0')}] {service.listTitle}
                         </h3>
-                        <button className="toggle-btn" type="button" aria-label={`Toggle ${service.title}`}>
+                        <button className="toggle-btn" type="button" aria-label={`Toggle ${service.listTitle}`}>
                           {isOpen ? '−' : '+'}
                         </button>
                       </div>
@@ -81,7 +81,7 @@ export default function ServicesPage() {
                           className="service-features service-features--green-checks"
                         />
                         <Link href={`/services/${service.slug}`} className="btn-explore">
-                          Explore Service Details
+                          {service.linkLabel}
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <path d="M5 12h14" />
                             <path d="M13 6l6 6-6 6" />

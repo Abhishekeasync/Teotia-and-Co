@@ -241,9 +241,9 @@ export default function Home() {
                         onClick={() => toggleAccordion(index)}
                       >
                         <h3>
-                          [{String(index + 1).padStart(2, '0')}] {service.title}
+                          [{String(index + 1).padStart(2, '0')}] {service.listTitle}
                         </h3>
-                        <button className="toggle-btn" type="button" aria-label={`Toggle ${service.title}`}>
+                        <button className="toggle-btn" type="button" aria-label={`Toggle ${service.listTitle}`}>
                           {isOpen ? '−' : '+'}
                         </button>
                       </div>
@@ -255,7 +255,7 @@ export default function Home() {
                           className="service-features service-features--green-checks"
                         />
                         <Link href={`/services/${service.slug}`} className="btn-explore">
-                          Explore Service Details
+                          {service.linkLabel}
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                             <path d="M5 12h14" />
                             <path d="M13 6l6 6-6 6" />
