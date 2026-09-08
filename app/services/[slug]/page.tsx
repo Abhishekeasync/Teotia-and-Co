@@ -1,14 +1,17 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CtaBanner from '@/components/CtaBanner';
+import { SchemaOrg } from '@/components/SchemaOrg';
 import { Reveal, RevealText } from '@/components/Reveal';
 import ServiceDetailChecks from '@/components/ServiceDetailChecks';
 import {
+  buildServiceFaqSchema,
   getAllServiceSlugs,
   getServiceBySlug,
   services,
 } from '@/lib/services';
-import { buildConsultationUrl, mapServiceSlugToEnquiryType } from '@/lib/consultation';
+import { buildConsultationUrl } from '@/lib/consultation';
+import { generatePageMetadata } from '@/lib/metadata';
 import '../../page-styles.css';
 
 type ServicePageProps = {
@@ -27,10 +30,11 @@ export async function generateMetadata({ params }: ServicePageProps) {
     return { title: 'Service Not Found | TEOTIA & CO.' };
   }
 
-  return {
-    title: `${service.title} | TEOTIA & CO.`,
-    description: service.description[0],
-  };
+  return generatePageMetadata({
+    title: service.seoTitle,
+    description: service.metaDescription,
+    path: `/services/${slug}`,
+  });
 }
 
 export default async function ServiceDetailPage({ params }: ServicePageProps) {
@@ -41,8 +45,12 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
     notFound();
   }
 
+  const faqSchema = buildServiceFaqSchema(service.faqs, `/services/${slug}`);
+
   return (
     <>
+      {faqSchema && <SchemaOrg schema={faqSchema} />}
+
       <section className="service-detail">
         <div className="service-detail-inner">
           <nav className="service-detail-breadcrumb" aria-label="Breadcrumb">
@@ -65,10 +73,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
               </div>
 
               <Link
-                href={buildConsultationUrl({
-                  source: `service-${slug}`,
-                  service: mapServiceSlugToEnquiryType(slug),
-                })}
+                href={buildConsultationUrl({ serviceSlug: slug })}
                 className="service-book-btn"
               >
                 Book Now
@@ -76,34 +81,67 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
 
               <div className="service-detail-divider" />
 
-              <RevealText as="h2">Service Description</RevealText>
-              {service.description.map((paragraph) => (
-                <p key={paragraph.slice(0, 40)} className="service-detail-copy">
-                  {paragraph}
-                </p>
-              ))}
+              <p className="service-detail-copy">{service.intro}</p>
 
-              <ServiceDetailChecks items={service.highlights} />
+              <RevealText as="h2">What&apos;s included</RevealText>
+              <ServiceDetailChecks items={service.whatsIncluded} />
+
+              <RevealText as="h2">Who this is for</RevealText>
+              <p className="service-detail-copy">{service.whoThisIsFor}</p>
+
+              {service.ourApproach && (
+                <>
+                  <RevealText as="h2">Our approach</RevealText>
+                  <p className="service-detail-copy">{service.ourApproach}</p>
+                </>
+              )}
+
+              {service.relatedLinks && service.relatedLinks.length > 0 && (
+                <p className="service-detail-copy service-detail-related">
+                  Related services:{' '}
+                  {service.relatedLinks.map((link, index) => (
+                    <span key={link.slug}>
+                      {index > 0 && (index === service.relatedLinks!.length - 1 ? ', and ' : ', ')}
+                      <Link href={`/services/${link.slug}`}>{link.label}</Link>
+                    </span>
+                  ))}
+                  .
+                </p>
+              )}
+
+              {service.faqs.length > 0 && (
+                <div className="service-detail-faq">
+                  <RevealText as="h2">Frequently asked questions</RevealText>
+                  <dl className="service-faq-list">
+                    {service.faqs.map((faq) => (
+                      <div key={faq.question} className="service-faq-item">
+                        <dt>{faq.question}</dt>
+                        <dd>{faq.answer}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
             </div>
 
             <Reveal>
               <aside className="service-detail-sidebar">
                 <RevealText as="h2">Services</RevealText>
                 <ul className="service-detail-nav">
-                {services.map((item) => (
-                  <li key={item.slug}>
-                    <Link
-                      href={`/services/${item.slug}`}
-                      className={
-                        item.slug === service.slug
-                          ? 'service-detail-nav-link active'
-                          : 'service-detail-nav-link'
-                      }
-                    >
-                      {item.title}
-                    </Link>
-                  </li>
-                ))}
+                  {services.map((item) => (
+                    <li key={item.slug}>
+                      <Link
+                        href={`/services/${item.slug}`}
+                        className={
+                          item.slug === service.slug
+                            ? 'service-detail-nav-link active'
+                            : 'service-detail-nav-link'
+                        }
+                      >
+                        {item.listTitle}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </aside>
             </Reveal>

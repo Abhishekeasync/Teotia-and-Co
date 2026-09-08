@@ -1078,6 +1078,47 @@
   font-weight: 600;
 }
 
+.service-detail-main h2:not(:first-of-type) {
+  margin-top: 36px;
+}
+
+.service-detail-related a {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.service-detail-related a:hover {
+  text-decoration: underline;
+}
+
+.service-detail-faq {
+  margin-top: 12px;
+}
+
+.service-faq-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 720px;
+}
+
+.service-faq-item dt {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--heading-color);
+  margin-bottom: 8px;
+}
+
+.service-faq-item dd {
+  margin: 0;
+  color: #444;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
 /* SERVICES PAGE LAYOUT */
 .services-page-layout {
   max-width: 1200px;

@@ -58,7 +58,7 @@ export default function TrustSection() {
           {cards.map((card) => (
             <StaggerItem className="trust-card" key={card.title}>
               <div className="trust-icon">
-                <Image src={card.icon} alt="" width={card.width} height={card.height} />
+                <Image src={card.icon} alt={card.title} width={card.width} height={card.height} />
               </div>
               <h3>{card.title}</h3>
               <ul className="trust-bullets">
