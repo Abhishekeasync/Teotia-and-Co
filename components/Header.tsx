@@ -28,9 +28,10 @@ export default function Header() {
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About Us' },
     { href: '/services', label: 'Services' },
+    { href: '/blog', label: 'Insights' },
     { href: '/careers', label: 'Careers' },
     { href: '/contact', label: 'Contact' },
-    { href: '/blog', label: 'Insights' },
+  
   ];
 
   return (
