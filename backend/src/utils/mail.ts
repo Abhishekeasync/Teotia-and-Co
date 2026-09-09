@@ -19,8 +19,7 @@ function getTransport(): nodemailer.Transporter | null {
     _transport = nodemailer.createTransport({
       host,
       port,
-      // secure: port === 465,
-      secure:true,
+      secure: port === 465,
       auth: { user, pass },
       pool: true,
       maxConnections: 5,
