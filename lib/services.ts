@@ -50,7 +50,7 @@ export const services: Service[] = [
       'PAN, TAN, and GST registration post-incorporation',
     ],
     intro:
-      'Choosing the right business structure and getting it registered correctly is the foundation everything else builds on. Teotia & Co. helps founders, startups, and investors in Noida and across India incorporate the right entity the first time — with statutory approvals handled end-to-end.',
+      'Choosing the right business structure and getting it registered correctly is the foundation everything else builds on. Teotia & Co. helps founders, startups, and investors in Noida and across India incorporate the right entity the first time, with statutory approvals handled end-to-end.',
     whatsIncluded: [
       'Guidance on choosing the right structure: Private Limited Company, LLP, OPC, or Partnership',
       'Company/LLP registration with the Ministry of Corporate Affairs (MCA)',
@@ -62,7 +62,7 @@ export const services: Service[] = [
     whoThisIsFor:
       'First-time founders and investors setting up a new entity in India who want the structuring decision (not just the paperwork) handled by a chartered accountant, not a generic filing agent.',
     ourApproach:
-      'We start with a short consultation to understand your business model, funding plans, and ownership structure, then recommend the entity type that minimizes tax and compliance friction — before filing anything.',
+      'We start with a short consultation to understand your business model, funding plans, and ownership structure, then recommend the entity type that minimizes tax and compliance friction before filing anything.',
     faqs: [
       {
         question: 'How long does private limited company registration take?',
@@ -72,7 +72,7 @@ export const services: Service[] = [
       {
         question: 'Should I register a Private Limited Company or an LLP?',
         answer:
-          'It depends on your funding plans, liability needs, and compliance appetite — we walk through this with you before recommending a structure rather than defaulting to one.',
+          'It depends on your funding plans, liability needs, and compliance appetite. We walk through this with you before recommending a structure rather than defaulting to one.',
       },
       {
         question: 'Do you help with registrations after incorporation, like GST and PAN?',
@@ -115,22 +115,22 @@ export const services: Service[] = [
       'Support during regulatory inspections or ROC queries',
     ],
     whoThisIsFor:
-      'Companies that need ongoing secretarial compliance managed by advisors who understand governance requirements — not just annual return filing as a checkbox exercise.',
+      'Companies that need ongoing secretarial compliance managed by advisors who understand governance requirements, not just annual return filing as a checkbox exercise.',
     faqs: [
       {
         question: 'What happens if a company misses ROC filing deadlines?',
         answer:
-          'Missed filings attract additional government fees and can lead to penalties or director disqualification in repeated cases — we set up a compliance calendar specifically to prevent this.',
+          'Missed filings attract additional government fees and can lead to penalties or director disqualification in repeated cases. We set up a compliance calendar specifically to prevent this.',
       },
       {
         question: 'Do you handle statutory registers and minute books, or only filings?',
         answer:
-          'Both — we maintain statutory registers, board/shareholder meeting records, and handle the filings that flow from them.',
+          'Both. We maintain statutory registers, board/shareholder meeting records, and handle the filings that flow from them.',
       },
       {
         question: 'Can you run a compliance audit for a company that hasn\'t had one before?',
         answer:
-          'Yes, this is a common starting point — we review the company\'s filing and governance history and build a remediation plan for any gaps found.',
+          'Yes, this is a common starting point. We review the company\'s filing and governance history and build a remediation plan for any gaps found.',
       },
     ],
     relatedLinks: [
@@ -158,7 +158,7 @@ export const services: Service[] = [
       'Sector-specific FDI cap advisory',
     ],
     intro:
-      'Foreign investment into India comes with regulatory requirements that are easy to get wrong — and expensive to fix after the fact. Teotia & Co. advises foreign investors, Indian entities receiving FDI, and cross-border businesses on FEMA compliance and RBI reporting from structuring through to filing.',
+      'Foreign investment into India comes with regulatory requirements that are easy to get wrong and expensive to fix after the fact. Teotia & Co. advises foreign investors, Indian entities receiving FDI, and cross-border businesses on FEMA compliance and RBI reporting from structuring through to filing.',
     whatsIncluded: [
       'FDI structuring under the automatic and government approval routes',
       'FEMA compliance advisory for inbound and outbound transactions',
@@ -168,9 +168,9 @@ export const services: Service[] = [
       'Ongoing FEMA compliance monitoring for entities with foreign shareholding',
     ],
     whoThisIsFor:
-      'Foreign investors entering the Indian market, and Indian companies receiving foreign investment, who need the structuring and compliance handled by advisors who work in this area regularly — not as a one-off.',
+      'Foreign investors entering the Indian market, and Indian companies receiving foreign investment, who need the structuring and compliance handled by advisors who work in this area regularly, not as a one-off.',
     ourApproach:
-      'We review the proposed transaction structure against current FEMA regulations and sector caps before any capital moves, then handle the reporting obligations that follow — so structuring and compliance stay aligned instead of being treated as separate steps.',
+      'We review the proposed transaction structure against current FEMA regulations and sector caps before any capital moves, then handle the reporting obligations that follow, so structuring and compliance stay aligned instead of being treated as separate steps.',
     faqs: [
       {
         question: 'What is FC-GPR filing and when is it required?',
@@ -180,7 +180,7 @@ export const services: Service[] = [
       {
         question: 'Do all sectors allow 100% FDI under the automatic route?',
         answer:
-          'No — FDI limits and routes vary by sector. We advise on the applicable cap and route for your specific business before structuring the investment.',
+          'No. FDI limits and routes vary by sector. We advise on the applicable cap and route for your specific business before structuring the investment.',
       },
       {
         question: 'Can you assist investors who are not yet incorporated in India?',
@@ -249,7 +249,7 @@ export const services: Service[] = [
       'Documentation and regulatory compliance',
     ],
     intro:
-      'Mergers, acquisitions, and investment transactions succeed or fail on the details — structuring, diligence, and documentation done right the first time. Teotia & Co. supports businesses and investors through the full transaction lifecycle, from initial structuring through closing.',
+      'Mergers, acquisitions, and investment transactions succeed or fail on the details: structuring, diligence, and documentation done right the first time. Teotia & Co. supports businesses and investors through the full transaction lifecycle, from initial structuring through closing.',
     whatsIncluded: [
       'Transaction structuring for mergers, acquisitions, and investments',
       'Due diligence coordination (financial, tax, and regulatory)',
@@ -263,12 +263,12 @@ export const services: Service[] = [
       {
         question: 'What\'s the difference between due diligence coordination and a full due diligence report?',
         answer:
-          'We coordinate the diligence process across financial, tax, and regulatory workstreams and can produce full diligence reports — scope depends on transaction size and your requirements.',
+          'We coordinate the diligence process across financial, tax, and regulatory workstreams and can produce full diligence reports. Scope depends on transaction size and your requirements.',
       },
       {
         question: 'Do you work alongside our existing legal counsel on a deal?',
         answer:
-          'Yes, transaction advisory typically runs in parallel with legal counsel — we handle the financial, tax, and regulatory workstreams while legal handles contractual matters.',
+          'Yes, transaction advisory typically runs in parallel with legal counsel. We handle the financial, tax, and regulatory workstreams while legal handles contractual matters.',
       },
     ],
     relatedLinks: [
@@ -305,7 +305,7 @@ export const services: Service[] = [
       'Risk-focused legal documentation',
     ],
     whoThisIsFor:
-      'Businesses that need commercial agreements drafted or reviewed with financial and regulatory context — not generic templates disconnected from how the deal actually works.',
+      'Businesses that need commercial agreements drafted or reviewed with financial and regulatory context, not generic templates disconnected from how the deal actually works.',
     faqs: [],
     relatedLinks: [
       { slug: 'ma-transaction-advisory', label: 'M&A and transaction advisory' },
@@ -332,7 +332,7 @@ export const services: Service[] = [
       'Fundraising and diligence readiness support',
     ],
     intro:
-      'Startups and MSMEs need advisory support that scales with them — from initial registration through fundraising rounds and operational growth. Teotia & Co. works with founders in Noida and across India as a long-term advisory partner rather than a one-time filing service.',
+      'Startups and MSMEs need advisory support that scales with them, from initial registration through fundraising rounds and operational growth. Teotia & Co. works with founders in Noida and across India as a long-term advisory partner rather than a one-time filing service.',
     whatsIncluded: [
       'Business planning and financial modeling support',
       'MSME (Udyam) registration and related benefits advisory',
@@ -341,19 +341,19 @@ export const services: Service[] = [
       'Advisory on government schemes and incentives available to startups/MSMEs',
     ],
     whoThisIsFor:
-      'Founders who want an advisory relationship that continues past incorporation — through fundraising, scaling, and the compliance changes that come with growth.',
+      'Founders who want an advisory relationship that continues past incorporation, through fundraising, scaling, and the compliance changes that come with growth.',
     ourApproach:
-      'We map your current stage — idea, early revenue, or scaling — to the registrations, compliance, and documentation you actually need next, so advisory stays practical rather than a generic checklist.',
+      'We map your current stage (idea, early revenue, or scaling) to the registrations, compliance, and documentation you actually need next, so advisory stays practical rather than a generic checklist.',
     faqs: [
       {
         question: 'What benefits does MSME (Udyam) registration provide?',
         answer:
-          'Registered MSMEs can access priority lending, government scheme eligibility, and certain tax and compliance benefits — we advise on which apply to your specific business.',
+          'Registered MSMEs can access priority lending, government scheme eligibility, and certain tax and compliance benefits. We advise on which apply to your specific business.',
       },
       {
         question: 'Can you help prepare a startup for a fundraising round?',
         answer:
-          'Yes — this includes getting financial documentation, cap table structuring, and diligence readiness in order before investor conversations begin.',
+          'Yes. This includes getting financial documentation, cap table structuring, and diligence readiness in order before investor conversations begin.',
       },
     ],
     relatedLinks: [
@@ -381,7 +381,7 @@ export const services: Service[] = [
       'IP portfolio management',
     ],
     intro:
-      'Your brand name, logo, and other intellectual property are business assets — and unprotected ones are vulnerable to disputes and infringement. Teotia & Co. helps businesses register and manage trademarks and broader IP portfolios as part of overall business advisory.',
+      'Your brand name, logo, and other intellectual property are business assets, and unprotected ones are vulnerable to disputes and infringement. Teotia & Co. helps businesses register and manage trademarks and broader IP portfolios as part of overall business advisory.',
     whatsIncluded: [
       'Trademark search, registration, and renewal',
       'Brand protection strategy and infringement advisory',
@@ -428,7 +428,7 @@ export const services: Service[] = [
       'TDS compliance and statutory reporting',
     ],
     intro:
-      'Running a business means managing statutory tax obligations without losing focus on growth. Teotia & Co. provides end-to-end tax compliance and accounting services for businesses, startups, and professionals across Noida and Delhi NCR — covering direct tax, indirect tax (GST), and financial reporting under one roof.',
+      'Running a business means managing statutory tax obligations without losing focus on growth. Teotia & Co. provides end-to-end tax compliance and accounting services for businesses, startups, and professionals across Noida and Delhi NCR, covering direct tax, indirect tax (GST), and financial reporting under one roof.',
     whatsIncluded: [
       'Income tax planning, filing, and advisory for companies, LLPs, and individuals',
       'GST registration, monthly/quarterly return filing, and reconciliation',
@@ -438,14 +438,14 @@ export const services: Service[] = [
       'Compliance calendars so you never miss a statutory deadline',
     ],
     whoThisIsFor:
-      'Businesses that want a single, accountable point of contact for all tax and accounting compliance — rather than juggling separate vendors for GST, income tax, and bookkeeping.',
+      'Businesses that want a single, accountable point of contact for all tax and accounting compliance, rather than juggling separate vendors for GST, income tax, and bookkeeping.',
     ourApproach:
-      'We start with a compliance health check of your current filings, flag any gaps or exposure, then set up a recurring compliance calendar so every deadline — GST, TDS, advance tax, annual returns — is tracked and filed on time.',
+      'We start with a compliance health check of your current filings, flag any gaps or exposure, then set up a recurring compliance calendar so every deadline (GST, TDS, advance tax, annual returns) is tracked and filed on time.',
     faqs: [
       {
         question: 'Do you handle both GST and income tax compliance together?',
         answer:
-          'Yes — we manage direct and indirect tax compliance as one integrated service, so nothing falls through the cracks between the two.',
+          'Yes. We manage direct and indirect tax compliance as one integrated service, so nothing falls through the cracks between the two.',
       },
       {
         question: 'Can you take over accounting for a business currently behind on filings?',
@@ -483,7 +483,7 @@ export const services: Service[] = [
       'Business valuation assignments',
     ],
     intro:
-      'Restructuring a business — whether for tax efficiency, ownership changes, or ahead of a transaction — requires careful evaluation before any structural change is made. Teotia & Co. provides restructuring, due diligence, and valuation support for companies managing reorganizations and growth-stage decisions.',
+      'Restructuring a business, whether for tax efficiency, ownership changes, or ahead of a transaction, requires careful evaluation before any structural change is made. Teotia & Co. provides restructuring, due diligence, and valuation support for companies managing reorganizations and growth-stage decisions.',
     whatsIncluded: [
       'Corporate restructuring and business reorganization advisory',
       'Financial and tax due diligence for transactions and internal reviews',
@@ -502,7 +502,7 @@ export const services: Service[] = [
       {
         question: 'What\'s included in a business valuation engagement?',
         answer:
-          'Scope depends on purpose (transaction, dispute, or regulatory) — we scope the valuation approach and methodology with you before starting the engagement.',
+          'Scope depends on purpose (transaction, dispute, or regulatory). We scope the valuation approach and methodology with you before starting the engagement.',
       },
     ],
     relatedLinks: [

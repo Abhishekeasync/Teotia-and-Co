@@ -33,7 +33,7 @@ export default function ServicesPage() {
           </HeroReveal>
           <HeroReveal delay={0.08}>
             <p className="about-hero-sub">
-              Taxation, incorporation, corporate compliance, FDI/FEMA, M&A, and startup advisory for businesses across India — delivered by chartered accountants who handle structuring and compliance end to end.
+              Taxation, incorporation, corporate compliance, FDI/FEMA, M&A, and startup advisory for businesses across India, delivered by chartered accountants who handle structuring and compliance end to end.
             </p>
           </HeroReveal>
           <HeroReveal delay={0.16}>
