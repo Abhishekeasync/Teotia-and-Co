@@ -1,16 +1,26 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import type { Metadata } from 'next';
 import { publicApi } from '@/lib/api/client';
 import { ApiJob, ApiJobListResponse } from '@/lib/api/types';
+import { generatePageMetadata } from '@/lib/metadata';
 import '../page-styles.css';
 import './careers.css';
 import { CareersClientPage } from './CareersClientPage';
 
-export const metadata: Metadata = {
-  title: 'Careers | TEOTIA & CO.',
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Careers at TEOTIA & CO. , Join Our CA Team in Noida',
   description:
-    'Explore career opportunities at TEOTIA & CO. — a leading corporate law and compliance firm. Join our team of dedicated legal professionals.',
-};
+    'Explore career opportunities at TEOTIA & CO., a leading chartered accountancy firm in Noida. Join our team of taxation, audit, and business advisory professionals.',
+  path: '/careers',
+  keywords: [
+    'CA jobs Noida',
+    'chartered accountant careers',
+    'audit jobs Delhi NCR',
+    'tax consultant jobs',
+    'accounting jobs Noida',
+    'TEOTIA & CO careers',
+    'finance jobs India',
+  ],
+});
 
 export const revalidate = 60;
 

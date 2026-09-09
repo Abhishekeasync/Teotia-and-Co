@@ -1,9 +1,10 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from '@phosphor-icons/react/dist/ssr';
 import { publicApi } from '@/lib/api/client';
 import { ApiJob } from '@/lib/api/types';
+import { generatePageMetadata } from '@/lib/metadata';
 import { JobApplyForm } from '../JobApplyForm';
 import '../../page-styles.css';
 import '../careers.css';
@@ -24,10 +25,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const resolvedParams = await params;
   const job = await getJob(resolvedParams.slug);
   if (!job) return { title: 'Job Not Found | TEOTIA & CO.' };
-  return {
+
+  const description = `Apply for the ${job.title} position at TEOTIA & CO.${job.department ? ` Department: ${job.department}.` : ''}${job.location ? ` Location: ${job.location}.` : ''}`;
+
+  return generatePageMetadata({
     title: `${job.title} | Careers at TEOTIA & CO.`,
-    description: `Apply for the ${job.title} position at TEOTIA & CO. ${job.department ? `Department: ${job.department}.` : ''} ${job.location ? `Location: ${job.location}.` : ''}`,
-  };
+    description,
+    path: `/careers/${resolvedParams.slug}`,
+  });
 }
 
 export const revalidate = 60;
