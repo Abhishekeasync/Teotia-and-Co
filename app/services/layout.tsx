@@ -6,7 +6,7 @@ import { generatePageMetadata } from '@/lib/metadata';
 export const metadata: Metadata = generatePageMetadata({
   title: 'CA Services in India | Tax & Compliance',
   description:
-    'Expert CA services across India — GST, income tax, incorporation, FDI/FEMA, M&A, corporate compliance & startup advisory. Book a consultation.',
+    'Expert CA services across India: GST, income tax, incorporation, FDI/FEMA, M&A, corporate compliance and startup advisory. Book a consultation.',
   path: '/services',
   keywords: [
     'CA services Noida',
