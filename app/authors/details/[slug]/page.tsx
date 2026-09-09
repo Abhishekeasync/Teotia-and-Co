@@ -8,6 +8,8 @@ import { BlogCard } from '@/components/blog/BlogCard';
 import { Stagger } from '@/components/Reveal';
 import { mapApiBlogsToPost } from '@/lib/api/mappers';
 import { normalizeApiBlogs } from '@/lib/api/normalize';
+import { generatePageMetadata } from '@/lib/metadata';
+import type { Metadata } from 'next';
 import '../../../page-styles.css';
 
 type AuthorPageProps = {
@@ -37,18 +39,25 @@ async function getAuthorBlogs(authorSlug: string) {
   }
 }
 
-export async function generateMetadata({ params }: AuthorPageProps) {
+export async function generateMetadata({
+  params,
+}: AuthorPageProps): Promise<Metadata> {
   const { slug } = await params;
   const author = await getAuthor(slug);
   if (!author) return { title: 'Author Not Found' };
 
-  return {
+  const description = author.bio || `Articles by ${author.name}`;
+  const base = generatePageMetadata({
     title: `${author.name} | TEOTIA & CO.`,
-    description: author.bio || `Articles by ${author.name}`,
+    description,
+    path: `/authors/details/${slug}`,
+    image: author.profileImageUrl || undefined,
+  });
+
+  return {
+    ...base,
     openGraph: {
-      title: `${author.name} | TEOTIA & CO.`,
-      description: author.bio || `Articles by ${author.name}`,
-      images: author.profileImageUrl || undefined,
+      ...base.openGraph,
       type: 'profile',
     },
   };

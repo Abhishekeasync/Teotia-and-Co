@@ -1,5 +1,15 @@
 import { Metadata } from "next";
 
+/** Shared robots directive for admin, unsubscribe, and other non-indexable routes. */
+export const NOINDEX_ROBOTS: NonNullable<Metadata["robots"]> = {
+  index: false,
+  follow: false,
+  googleBot: {
+    index: false,
+    follow: false,
+  },
+};
+
 interface PageMetadataConfig {
   title: string;
   description: string;

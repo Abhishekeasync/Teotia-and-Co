@@ -1,16 +1,15 @@
 import type { Metadata } from 'next';
-import AdminAppLayout from '@/components/admin/AdminAppLayout';
 import { NOINDEX_ROBOTS } from '@/lib/metadata';
 
 export const metadata: Metadata = {
-  title: 'Admin | TEOTIA & CO.',
+  title: 'Unsubscribe | TEOTIA & CO.',
   robots: NOINDEX_ROBOTS,
 };
 
-export default function AdminLayout({
+export default function UnsubscribeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AdminAppLayout>{children}</AdminAppLayout>;
+  return children;
 }

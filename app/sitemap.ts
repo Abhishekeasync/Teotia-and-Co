@@ -1,35 +1,57 @@
 import { MetadataRoute } from 'next';
+import { LEGAL_LAST_UPDATED } from '@/lib/legal';
 import { getAllServiceSlugs } from '@/lib/services';
 
 const BASE_URL = 'https://www.teotiaco.com';
 
-// Fetch dynamic blog slugs from API
-async function getBlogSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
+type SitemapSlugEntry = {
+  slug: string;
+  updatedAt?: string;
+  status?: string;
+};
+
+function getBackendUrl(): string {
+  return process.env.BACKEND_URL || 'http://127.0.0.1:5000';
+}
+
+function isPublishedEntry(entry: SitemapSlugEntry): boolean {
+  if (!entry.slug?.trim()) return false;
+  if (!entry.status) return true;
+  return entry.status === 'published';
+}
+
+function toLastModified(updatedAt?: string): string {
+  if (!updatedAt) {
+    return new Date().toISOString().split('T')[0];
+  }
+  return new Date(updatedAt).toISOString().split('T')[0];
+}
+
+async function getBlogSlugs(): Promise<SitemapSlugEntry[]> {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
     const res = await fetch(
-      `${backendUrl}/api/v1/blogs?limit=1000&fields=slug,updatedAt`,
-      { next: { revalidate: 3600 } } // Revalidate every hour
+      `${getBackendUrl()}/api/v1/blogs?limit=1000&fields=slug,updatedAt,status`,
+      { next: { revalidate: 3600 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return data?.data?.blogs ?? [];
+    const blogs: SitemapSlugEntry[] = data?.data?.blogs ?? [];
+    return blogs.filter(isPublishedEntry);
   } catch {
     return [];
   }
 }
 
-// Fetch dynamic job slugs from API
-async function getJobSlugs(): Promise<{ slug: string; updatedAt?: string }[]> {
+async function getJobSlugs(): Promise<SitemapSlugEntry[]> {
   try {
-    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
     const res = await fetch(
-      `${backendUrl}/api/v1/jobs?limit=500&fields=slug,updatedAt`,
+      `${getBackendUrl()}/api/v1/jobs?limit=500&fields=slug,updatedAt,status`,
       { next: { revalidate: 3600 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return data?.data?.jobs ?? [];
+    const jobs: SitemapSlugEntry[] = data?.data?.jobs ?? [];
+    return jobs.filter(isPublishedEntry);
   } catch {
     return [];
   }
@@ -41,7 +63,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getJobSlugs(),
   ]);
 
-  // ── Static pages ──────────────────────────────────────────
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${BASE_URL}/`,
@@ -81,19 +102,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE_URL}/privacy-policy`,
-      lastModified: '2026-08-20',
+      lastModified: LEGAL_LAST_UPDATED,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${BASE_URL}/terms-of-service`,
-      lastModified: '2026-08-20',
+      lastModified: LEGAL_LAST_UPDATED,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
   ];
 
-  // ── Service detail pages ──────────────────────────────────
   const servicePages: MetadataRoute.Sitemap = getAllServiceSlugs().map((slug) => ({
     url: `${BASE_URL}/services/${slug}`,
     lastModified: '2026-09-08',
@@ -101,22 +121,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.9,
   }));
 
-  // ── Dynamic blog posts ────────────────────────────────────
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${BASE_URL}/blog/${post.slug}`,
-    lastModified: post.updatedAt
-      ? new Date(post.updatedAt).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0],
+    lastModified: toLastModified(post.updatedAt),
     changeFrequency: 'monthly' as const,
     priority: 0.6,
   }));
 
-  // ── Dynamic job listings ──────────────────────────────────
   const jobPages: MetadataRoute.Sitemap = jobListings.map((job) => ({
     url: `${BASE_URL}/careers/${job.slug}`,
-    lastModified: job.updatedAt
-      ? new Date(job.updatedAt).toISOString().split('T')[0]
-      : new Date().toISOString().split('T')[0],
+    lastModified: toLastModified(job.updatedAt),
     changeFrequency: 'weekly' as const,
     priority: 0.5,
   }));

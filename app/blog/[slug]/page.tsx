@@ -16,6 +16,8 @@ import { normalizeApiBlog } from '@/lib/api/normalize';
 import { buildFallbackShareLinks } from '@/lib/api/shareLinks';
 import { sanitizeHtml } from '@/lib/utils/sanitize';
 import { BlogViewTracker } from '@/components/blog/BlogViewTracker';
+import { generatePageMetadata } from '@/lib/metadata';
+import type { Metadata } from 'next';
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -33,18 +35,27 @@ const getBlogBySlug = cache(async (slug: string) => {
   }
 });
 
-export async function generateMetadata({ params }: BlogPostPageProps) {
+export async function generateMetadata({
+  params,
+}: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const blog = await getBlogBySlug(slug);
   if (!blog) return { title: 'Post Not Found' };
 
-  return {
+  const description = blog.metaDescription || blog.shortDescription;
+  const base = generatePageMetadata({
     title: `${blog.heading} | TEOTIA & CO.`,
-    description: blog.metaDescription || blog.shortDescription,
+    description,
+    path: `/blog/${slug}`,
+    image: blog.ogImageUrl || blog.featuredImageUrl || undefined,
+  });
+
+  return {
+    ...base,
     openGraph: {
+      ...base.openGraph,
       title: blog.metaTitle || blog.heading,
-      description: blog.metaDescription || blog.shortDescription,
-      images: blog.ogImageUrl || blog.featuredImageUrl || undefined,
+      description,
       type: 'article',
       publishedTime: blog.publishedAt || undefined,
       authors:
