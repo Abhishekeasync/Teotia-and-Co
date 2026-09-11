@@ -96,7 +96,7 @@ export default function ServicesPage() {
 
             <Reveal className="services-page-image">
               <Image
-                src="/assets/images/services-consult-support.png"
+                src="/assets/images/bc/What-we-do.webp"
                 alt="Man writing on paper with calculator at wooden table"
                 width={567}
                 height={815}

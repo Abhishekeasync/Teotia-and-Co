@@ -1,89 +1,32 @@
-# llms.txt - Machine-readable site structure for AI systems
-# TEOTIA & CO. - Chartered Accountants
-# https://www.teotiaco.com/
+# TEOTIA & CO.
 
-# About
-TEOTIA & CO. is a chartered accountancy firm based in Noida, Uttar Pradesh, India, providing expert services in taxation, audit, corporate finance, and regulatory compliance.
+> Chartered accountancy firm in Noida, Uttar Pradesh, India, providing taxation, audit, corporate finance, and regulatory compliance for Indian and international clients.
 
-## Contact Information
-- Address: F2, Block-F, Sector-8, Noida, U.P., 201301
-- Phone: +91 8287858780
-- Email: info@teotiaco.com
-- Website: https://www.teotiaco.com
+TEOTIA & CO. is based at F2, Block-F, Sector-8, Noida, U.P. 201301. Phone +91 8287858780. Email info@teotiaco.com. Areas served: Noida, Greater Noida, Delhi NCR, India, and international clients. Partners include Shubham Teotia (CA), Rahul Chaudhary (CA), Shefali Teotia, Kunal Teotia (CS), and Shaurya Nijhawan (CA).
 
 ## Services
 
-### Company Incorporation & Business Setup Services
-URL: /services/company-incorporation
-We assist entrepreneurs, startups, and investors in establishing businesses through seamless incorporation and registration services.
+- [Company Incorporation & Business Setup](https://www.teotiaco.com/services/company-incorporation): Company, LLP, and OPC registration with statutory approvals for founders and investors in India.
+- [Corporate Secretarial Compliance](https://www.teotiaco.com/services/corporate-secretarial): ROC filings, board and shareholder matters, statutory records, and MCA compliance.
+- [FDI, FEMA & Cross-Border Advisory](https://www.teotiaco.com/services/fdi-fema-advisory): Foreign investment structuring, FEMA compliance, and cross-border transaction support.
+- [Regulatory Approvals & Government Liaison](https://www.teotiaco.com/services/regulatory-approvals): Registrations, licenses, approvals, and regulatory clearances for businesses.
+- [M&A and Transaction Advisory](https://www.teotiaco.com/services/ma-transaction-advisory): Due diligence, transaction structuring, and regulatory support for mergers and acquisitions.
+- [Contracts & Commercial Agreements](https://www.teotiaco.com/services/contracts-agreements): Drafting, review, and negotiation of contracts and commercial agreements.
+- [Startup, MSME & Business Growth Advisory](https://www.teotiaco.com/services/startup-msme-advisory): Advisory for startups and MSMEs covering registration, growth, and compliance.
+- [IPR Protection](https://www.teotiaco.com/services/ipr-protection): Trademark, copyright, and patent protection support.
+- [Taxation, Accounting & Compliance](https://www.teotiaco.com/services/taxation-accounting): Income tax, GST, TDS, and accounting support.
+- [Corporate Restructuring & Due Diligence](https://www.teotiaco.com/services/corporate-restructuring): Restructuring, mergers, demergers, and due diligence.
 
-### Corporate Secretarial Compliance & Advisory
-URL: /services/corporate-secretarial
-Our firm helps organizations maintain compliance with corporate laws and governance requirements.
+## Pages
 
-### FDI, FEMA & Cross-Border Investment Advisory
-URL: /services/fdi-fema-advisory
-We advise domestic and international clients on foreign investment regulations and cross-border transactions.
+- [Homepage](https://www.teotiaco.com/): Overview of TEOTIA & CO. chartered accountancy services in Noida and Delhi NCR.
+- [About](https://www.teotiaco.com/about): Firm overview, vision, and the partner team.
+- [Services](https://www.teotiaco.com/services): Full list of taxation, incorporation, and advisory services.
+- [Blog](https://www.teotiaco.com/blog): Articles on tax, compliance, and corporate law in India.
+- [Careers](https://www.teotiaco.com/careers): Open roles at TEOTIA & CO.
+- [Contact](https://www.teotiaco.com/contact): Noida office address, phone, and enquiry form.
 
-### Regulatory Approvals & Government Liaison
-URL: /services/regulatory-approvals
-We assist businesses in obtaining various registrations, licenses, approvals, and regulatory clearances.
+## Optional
 
-### M&A and Transaction Advisory Services
-URL: /services/ma-transaction-advisory
-Expert advisory for mergers, acquisitions, and corporate restructuring transactions.
-
-### Contracts & Commercial Agreements
-URL: /services/contracts-agreements
-Professional assistance with drafting, reviewing, and negotiating contracts and commercial agreements.
-
-### Startup, MSME & Business Growth Advisory
-URL: /services/startup-msme-advisory
-Specialized advisory services for startups and small-to-medium enterprises.
-
-### IPR Protection Services
-URL: /services/ipr-protection
-Intellectual property rights protection including trademark, copyright, and patent services.
-
-### Taxation, Accounting & Compliance Support
-URL: /services/taxation-accounting
-Comprehensive taxation services including income tax, GST, TDS, and accounting support.
-
-### Corporate Restructuring, Due Diligence
-URL: /services/corporate-restructuring
-Expert guidance on corporate restructuring, mergers, demergers, and due diligence.
-
-## Team
-
-### Shubham Teotia
-Chartered Accountant
-Partner at TEOTIA & CO.
-
-### Rahul Chaudhary
-Chartered Accountant
-Partner at TEOTIA & CO.
-
-### Shefali Teotia
-Partner
-Partner at TEOTIA & CO.
-
-### Kunal Teotia
-Company Secretary
-Partner at TEOTIA & CO.
-
-### Shaurya Nijhawan
-Chartered Accountant
-Partner at TEOTIA & CO.
-
-## Areas Served
-Noida, Greater Noida, Delhi NCR, India, and international clients
-
-## Key Pages
-- Homepage: /
-- About Us: /about
-- Services: /services
-- Blog: /blog
-- Careers: /careers
-- Contact: /contact
-- Privacy Policy: /privacy-policy
-- Terms of Service: /terms-of-service
+- [Privacy Policy](https://www.teotiaco.com/privacy-policy): How TEOTIA & CO. collects and uses personal information.
+- [Terms of Service](https://www.teotiaco.com/terms-of-service): Terms governing use of teotiaco.com.

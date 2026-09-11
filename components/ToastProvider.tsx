@@ -1,10 +1,15 @@
 'use client';
 
+import { useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { MAX_VISIBLE_TOASTS } from '@/lib/toast';
+import { MAX_VISIBLE_TOASTS, markToastUiReady } from '@/lib/toast-config';
 
 export function ToastProvider() {
+  useEffect(() => {
+    markToastUiReady();
+  }, []);
+
   return (
     <ToastContainer
       position="top-right"

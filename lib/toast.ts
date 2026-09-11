@@ -1,32 +1,51 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import type { ToastOptions, TypeOptions } from 'react-toastify';
 import {
-  toast as toastify,
-  type ToastOptions,
-  type TypeOptions,
-} from 'react-toastify';
+  DEFAULT_TOAST_AUTO_CLOSE_MS,
+  requestToastUi,
+  toastUiReady,
+} from '@/lib/toast-config';
 
 type ToastContent = string | ReactNode;
 
-export const MAX_VISIBLE_TOASTS = 3;
-const DEFAULT_AUTO_CLOSE_MS = 4000;
+type ToastifyModule = typeof import('react-toastify');
+
+let toastifyPromise: Promise<ToastifyModule> | null = null;
+
+function loadToastify() {
+  if (!toastifyPromise) {
+    requestToastUi();
+    toastifyPromise = import('react-toastify');
+  }
+  return toastifyPromise;
+}
+
+export { MAX_VISIBLE_TOASTS } from '@/lib/toast-config';
 
 function resolveAutoClose(options?: ToastOptions): number | false {
   if (options?.autoClose === false) return false;
   if (typeof options?.autoClose === 'number') return options.autoClose;
-  return DEFAULT_AUTO_CLOSE_MS;
+  return DEFAULT_TOAST_AUTO_CLOSE_MS;
 }
 
 function toastKey(type: TypeOptions, message: string) {
   return `${type}:${message}`;
 }
 
-function show(
+async function show(
   type: 'success' | 'error' | 'info',
   message: ToastContent,
   options?: ToastOptions,
 ) {
+  const { toast: toastify } = await loadToastify();
+  await Promise.race([
+    toastUiReady,
+    new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 2000);
+    }),
+  ]);
   const autoClose = resolveAutoClose(options);
 
   if (typeof message === 'string') {
@@ -50,15 +69,15 @@ function show(
 
 export const toast = {
   success(message: ToastContent, options?: ToastOptions) {
-    show('success', message, options);
+    void show('success', message, options);
   },
   error(message: ToastContent, options?: ToastOptions) {
-    show('error', message, options);
+    void show('error', message, options);
   },
   info(message: ToastContent, options?: ToastOptions) {
-    show('info', message, options);
+    void show('info', message, options);
   },
   message(message: ToastContent, options?: ToastOptions) {
-    show('info', message, options);
+    void show('info', message, options);
   },
 };

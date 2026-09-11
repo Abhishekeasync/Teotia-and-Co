@@ -15,6 +15,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const isHome = pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,12 +45,13 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="pill-logo">
             <Image
-              src="/assets/images/Logo.png"
+              src="/assets/images/bc/Logo.webp"
               alt="TEOTIA &amp; CO. Logo"
               className="logo"
               width={160}
               height={54}
-              priority
+              priority={!isHome}
+              fetchPriority={isHome ? 'low' : 'auto'}
             />
           </Link>
 

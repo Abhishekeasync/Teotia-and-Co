@@ -56,11 +56,14 @@ export default function AboutPage() {
 
           <Reveal className="about-col-img">
             <Image
-              src="/assets/images/static.wixstatic.com/image-20249-383eae270f.png"
+              src="/assets/images/bc/About-us-team.webp"
               alt="Our team collaborating in the office"
               width={458}
               height={524}
+              sizes="(max-width: 1024px) 100vw, 458px"
+              loading="lazy"
               className="team-img-rounded"
+              style={{ width: "100%", height: "auto" }}
             />
           </Reveal>
         </div>
