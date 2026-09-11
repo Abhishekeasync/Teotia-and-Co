@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import { PublicShell } from "@/components/PublicShell";
-import { ToastProvider } from "@/components/ToastProvider";
+import { LazyToastRoot } from "@/components/LazyToastRoot";
 import { FlashToast } from "@/components/FlashToast";
 
 export const metadata: Metadata = {
@@ -25,9 +25,7 @@ export const metadata: Metadata = {
     "FEMA consultants India",
   ],
   icons: {
-    icon: "/assets/images/favicon.png?v=2",
-    shortcut: "/assets/images/favicon.png?v=2",
-    apple: "/assets/images/favicon.png?v=2",
+    icon: { url: "/favicon.ico", type: "image/x-icon" },
   },
   alternates: {
     canonical: "https://www.teotiaco.com",
@@ -73,6 +71,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  themeColor: "#08085e",
 };
 
 export default function RootLayout({
@@ -81,10 +80,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body>
         <PublicShell footer={<Footer />}>{children}</PublicShell>
-        <ToastProvider />
+        <LazyToastRoot />
         <Suspense>
           <FlashToast />
         </Suspense>

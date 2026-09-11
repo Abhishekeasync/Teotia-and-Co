@@ -1,8 +1,14 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Reveal, RevealText } from '@/components/Reveal';
 import { buildConsultationUrl } from '@/lib/consultation';
+
+const CTA_VIDEO_SRC = '/assets/media/video.wixstatic.com/file-796864cfbe.mp4';
+const CTA_POSTER_SRC =
+  '/assets/images/static.wixstatic.com/11062b_eb3f6c5a72c74c349b14cadcafa930d7f000-21825a8c1f.jpg';
 
 type CtaBannerProps = {
   title?: string;
@@ -17,6 +23,54 @@ export default function CtaBanner({
   buttonText = 'Book Consultation',
   buttonHref = buildConsultationUrl({ source: 'cta-banner' }),
 }: CtaBannerProps) {
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const syncViewport = () => setIsMobileViewport(mobileQuery.matches);
+    const syncMotion = () => setPrefersReducedMotion(motionQuery.matches);
+
+    syncViewport();
+    syncMotion();
+
+    if (mobileQuery.matches || motionQuery.matches) {
+      return;
+    }
+
+    const node = mediaRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoadVideo(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '240px 0px' },
+    );
+
+    observer.observe(node);
+
+    mobileQuery.addEventListener('change', syncViewport);
+    motionQuery.addEventListener('change', syncMotion);
+
+    return () => {
+      observer.disconnect();
+      mobileQuery.removeEventListener('change', syncViewport);
+      motionQuery.removeEventListener('change', syncMotion);
+    };
+  }, []);
+
+  const showVideo = shouldLoadVideo && !isMobileViewport && !prefersReducedMotion;
+
   return (
     <section className="cta-banner cta-banner--split">
       <div className="cta-banner-inner">
@@ -43,18 +97,29 @@ export default function CtaBanner({
           </Reveal>
         </div>
         <Reveal className="cta-banner-media" delay={0.12}>
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/assets/images/static.wixstatic.com/11062b_eb3f6c5a72c74c349b14cadcafa930d7f000-21825a8c1f.jpg"
-          >
-            <source
-              src="/assets/media/video.wixstatic.com/file-796864cfbe.mp4"
-              type="video/mp4"
-            />
-          </video>
+          <div ref={mediaRef} className="cta-banner-media-frame">
+            {showVideo ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="none"
+                poster={CTA_POSTER_SRC}
+              >
+                <source src={CTA_VIDEO_SRC} type="video/mp4" />
+              </video>
+            ) : (
+              <Image
+                src={CTA_POSTER_SRC}
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 420px"
+                loading="lazy"
+                className="cta-banner-poster"
+              />
+            )}
+          </div>
         </Reveal>
       </div>
     </section>

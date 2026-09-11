@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, type Variants } from 'framer-motion';
+import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import type { ReactNode } from 'react';
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -37,6 +37,12 @@ type RevealProps = {
 
 /** Fade-up on scroll — use for section blocks, images, text columns */
 export function Reveal({ children, className, delay = 0, y = 28 }: RevealProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -64,6 +70,13 @@ export function RevealText({
   as = 'h2',
   delay = 0,
 }: RevealTextProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    const Tag = as;
+    return <Tag className={className}>{children}</Tag>;
+  }
+
   const Component = motion[as];
   return (
     <Component
@@ -86,6 +99,12 @@ export function Stagger({
   children: ReactNode;
   className?: string;
 }) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -110,6 +129,12 @@ export function StaggerItem({
   /** End scale when revealed (e.g. 1.06 for a center zoom) */
   scale?: number;
 }) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
@@ -127,20 +152,18 @@ export function StaggerItem({
   );
 }
 
-/** Hero / above-the-fold load animation (not scroll-triggered) */
+/** Hero / above-the-fold load animation — CSS-only so LCP text stays visible before hydration */
 export function HeroReveal({
   children,
   className,
   delay = 0,
 }: RevealProps) {
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ ...defaultTransition, delay, duration: 0.7 }}
+    <div
+      className={className ? `hero-reveal ${className}` : 'hero-reveal'}
+      style={{ animationDelay: `${delay}s` }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { toast } from '@/lib/toast';
+import { requestToastUi } from '@/lib/toast-config';
 
 export function FlashToast() {
   const searchParams = useSearchParams();
@@ -11,6 +12,12 @@ export function FlashToast() {
     const success = searchParams.get('success');
     const error = searchParams.get('error');
     const info = searchParams.get('info');
+
+    if (!success && !error && !info) {
+      return;
+    }
+
+    requestToastUi();
 
     if (success) {
       toast.success(success);

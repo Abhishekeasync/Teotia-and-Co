@@ -26,7 +26,7 @@ export default function ConsultationHours({
         <div className="available-body">
           <Reveal className="available-image">
             <Image
-              src="/assets/images/static.wixstatic.com/image-20256-4404a5e778.png"
+              src="/assets/images/bc/Consult-support.webp"
               alt="Team collaborating during a consultation"
               width={640}
               height={520}

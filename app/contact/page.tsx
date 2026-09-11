@@ -312,7 +312,7 @@ function ContactPageContent() {
         <div className="contact-form-layout">
           <Reveal className="contact-form-image">
             <Image
-              src="/assets/images/melinda-gimpel-5Ne6mMQtIdo-unsplash.jpg"
+              src="/assets/images/bc/Contact-us.webp"
               alt="Wooden letter tiles spelling CONTACT on a blue background"
               width={1037}
               height={691}
